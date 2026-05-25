@@ -73,7 +73,7 @@ class TodoController extends Controller
                     $html .= '</select>';
                     return $html;
                 })->addColumn('priority_action', function ($row) {
-                    $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $todo->id . '">';
+                    $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $row->id . '">';
                     foreach (TodoPriority::cases() as $priority) {
                         $selected = $row->priority->value == $priority->value ? 'selected' : '';
                         $html .= '<option value="' . $priority->value . '"' . $selected . '>' . $priority->label() . '</option>';
