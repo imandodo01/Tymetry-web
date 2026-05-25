@@ -2,6 +2,17 @@
 # Todo Management System
 
 A simple productivity-focused todo management application.
+## Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+## Todo List
+
+![Todo List](screenshots/todo-list.png)
+
+## Archive
+
+![Mobile View](screenshots/archive.png)
 
 ## Features
 
