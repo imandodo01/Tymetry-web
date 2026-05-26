@@ -188,6 +188,26 @@ body {
     background: #dc3545;
 }
 
+.password-toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #777;
+    padding: 0;
+    z-index: 10;
+}
+
+.password-toggle-btn:hover {
+    color: #111;
+}
+
+.form-control.password.is-invalid {
+    background-image: none !important;
+}
+
 /* MOBILE */
 @media (max-width: 768px) {
     .wrapper {

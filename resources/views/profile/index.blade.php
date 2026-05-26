@@ -62,8 +62,14 @@
                         @method('PUT')
                         <div class="mb-4">
                             <label class="form-label">Current Password</label>
-                            <input type="password" name="current_password"
-                                class="form-control @error('current_password') is-invalid @enderror">
+                            <div class="position-relative">
+                                <input type="password" name="current_password" id="current_password"
+                                    class="form-control password pe-5 @error('current_password') is-invalid @enderror">
+
+                                <button type="button" id="toggleCurrentPassword" class="password-toggle-btn">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
 
                             @error('current_password')
                             <span class="invalid-feedback">
@@ -73,8 +79,14 @@
                         </div>
                         <div class="mb-4">
                             <label class="form-label">New Password</label>
-                            <input type="password" name="password"
-                                class="form-control @error('password') is-invalid @enderror">
+                            <div class="position-relative">
+                                <input type="password" name="password" id="password"
+                                    class="form-control password pe-5 @error('password') is-invalid @enderror">
+
+                                <button type="button" id="togglePassword" class="password-toggle-btn">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             @error('password')
                             <span class="invalid-feedback">
                                 {{ $message }}
@@ -83,7 +95,14 @@
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control">
+                            <div class="position-relative">
+                                <input type="password" name="password_confirmation" id="password_confirmation"
+                                    class="form-control password pe-5 @error('password_confirmation') is-invalid @enderror">
+
+                                <button type="button" id="togglePasswordConfirmation" class="password-toggle-btn">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-outline-dark btn-sm px-4">
@@ -96,3 +115,58 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');
+    const currentPassword = document.getElementById('current_password');
+    const iconCurrent = toggleCurrentPassword.querySelector('i');
+
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const icon = togglePassword.querySelector('i');
+
+    const togglePasswordConfirm = document.getElementById('togglePasswordConfirmation');
+    const passwordConfirm = document.getElementById('password_confirmation');
+    const iconConfirm = togglePasswordConfirm.querySelector('i');
+
+    toggleCurrentPassword.addEventListener('click', function () {
+
+        const isPassword = currentPassword.getAttribute('type') === 'password';
+
+        currentPassword.setAttribute(
+            'type',
+            isPassword ? 'text' : 'password'
+        );
+
+        iconCurrent.classList.toggle('bi-eye');
+        iconCurrent.classList.toggle('bi-eye-slash');
+    });
+
+    togglePassword.addEventListener('click', function () {
+
+        const isPassword = password.getAttribute('type') === 'password';
+
+        password.setAttribute(
+            'type',
+            isPassword ? 'text' : 'password'
+        );
+
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+
+    togglePasswordConfirm.addEventListener('click', function () {
+
+        const isPassword = passwordConfirm.getAttribute('type') === 'password';
+
+        passwordConfirm.setAttribute(
+            'type',
+            isPassword ? 'text' : 'password'
+        );
+
+        iconConfirm.classList.toggle('bi-eye');
+        iconConfirm.classList.toggle('bi-eye-slash');
+    });
+</script>
+@endpush
