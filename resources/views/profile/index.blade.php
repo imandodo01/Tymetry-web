@@ -97,7 +97,7 @@
                             <label class="form-label">Confirm Password</label>
                             <div class="position-relative">
                                 <input type="password" name="password_confirmation" id="password_confirmation"
-                                    class="form-control password pe-5 @error('password_confirmation') is-invalid @enderror">
+                                    class="form-control password pe-5 @error('password') is-invalid @enderror">
 
                                 <button type="button" id="togglePasswordConfirmation" class="password-toggle-btn">
                                     <i class="bi bi-eye"></i>

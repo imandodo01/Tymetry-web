@@ -101,7 +101,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5">
+                        <td colspan="6">
                             <x-empty-state icon="bi-archive" title="No archived todo"
                                 description="Archived tasks will appear here." />
                         </td>
