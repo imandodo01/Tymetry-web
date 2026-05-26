@@ -29,7 +29,7 @@ Route::controller(ForgotPasswordController::class)->name('password.')->group(fun
     Route::post('/reset-password', 'updatePassword')->name('update');
 });
 
-Route::controller(OtpController::class)->name('auth.')->group(function () {
+Route::controller(OtpController::class)->name('otp.')->group(function () {
     Route::get('/otp', 'index')->name('index');
     Route::post('/send', 'send')->name('send');
     Route::post('/verify', 'verify')->name('verify');
@@ -42,6 +42,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::controller(TodoController::class)->prefix('todos')->name('todo.')->group(function () {
         Route::get('/', 'index')->name('index');
+
+        Route::post('/bulk/done', 'bulkDone')->name('bulk.done');
+        Route::post('/bulk/archive', 'bulkArchive')->name('bulk.archive');
+        Route::post('/bulk/restore', 'bulkRestore')->name('bulk.restore');
 
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
@@ -58,9 +62,6 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/archive', 'archive')->name('archive');
         Route::post('/{id}/restore', 'restore')->name('restore');
-
-        Route::post('/bulk/done', 'bulkDone')->name('bulk.done');
-        Route::post('/bulk/archive', 'bulkArchive')->name('bulk.archive');
     });
 
     Route::controller(ProfileController::class)->prefix('profile')->name('profile.')->group(function () {

@@ -204,7 +204,7 @@ $(document).on('click', '.toggleCompleteBtn', function () {
 $(document).on('change', '.inlinePriority', function () {
     let select = $(this);
     $.ajax({
-        url: `todo/${select.data('id')}/priority`,
+        url: `todos/${select.data('id')}/priority`,
         type: 'POST',
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),
@@ -219,7 +219,7 @@ $(document).on('change', '.inlinePriority', function () {
 $(document).on('change', '.inlineDueDate', function () {
     let input = $(this);
     $.ajax({
-        url: `todo/${input.data('id')}/due-date`,
+        url: `todos/${input.data('id')}/due-date`,
         type: 'POST',
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),

@@ -29,10 +29,18 @@
 </div>
 <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-outline-dark btn-sm" id="bulkRestore">
+                Restore
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
+                        <th width="40" class="px-4 py-3">
+                            <input type="checkbox" id="checkAll" onclick="event.stopPropagation();">
+                        </th>
                         <th class="px-4 py-3">
                             Title
                         </th>
@@ -53,6 +61,9 @@
                 <tbody>
                     @forelse ($todos as $todo)
                     <tr>
+                        <td class="px-4 py-3">
+                            <input type="checkbox" class="todo-checkbox" value="{{ $todo->id }}">
+                        </td>
                         <td class="px-4 py-3">
                             <div class="fw-semibold">
                                 {{ $todo->title }}

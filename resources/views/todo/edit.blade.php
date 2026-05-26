@@ -1,8 +1,8 @@
-{{-- @extends('layout.app')
+@extends('layout.app')
 
 @section('title', 'Todo')
 
-@section('content') --}}
+@section('content')
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 py-3 px-4">
         <h5 class="mb-0 fw-semibold">
@@ -23,4 +23,4 @@
         </form>
     </div>
 </div>
-{{-- @endsection --}}
+@endsection

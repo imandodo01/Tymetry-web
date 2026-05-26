@@ -13,7 +13,8 @@
 
 <div class="mb-4">
     <label class="form-label">Description</label>
-    <textarea name="description" rows="4" class="form-control">{{ old('title', $todo->description ?? '') }}</textarea>
+    <textarea name="description" rows="4"
+        class="form-control">{{ old('description', $todo->description ?? '') }}</textarea>
 </div>
 
 <div class="row">

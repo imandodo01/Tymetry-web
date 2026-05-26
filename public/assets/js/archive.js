@@ -1,70 +1,55 @@
-
 var table;
+
+function toggleBulkButtons() {
+    let hasSelected = $('.todo-checkbox:checked').length > 0;
+
+    $('#bulkRestore').prop('disabled', !hasSelected);
+}
 $(function () {
-    table = $('#todoTable').DataTable({
-        processing: true,
-        serverSide: true,
-        searching: false,
-        ajax: {
-            url: "{{ route('todo.index') }}",
-            data: function (d) {
-                d.search_title = $('#searchTitle').val();
-                d.status = $('#filterStatus').val();
-                d.priority = $('#filterPriority').val();
-            },
-            fail: function (xhr) {
-                ajaxFailHandler(xhr);
-            }
-        },
-        columns: [
-            { data: 'title' },
-            { data: 'status_action' },
-            { data: 'priority_badge' },
-            { data: 'action' },
-        ],
-        language: {
-            emptyTable: `
-                    <div class="py-5 text-center">
-                        <i class="bi bi-inbox fs-1 text-muted"></i>
-                        <div class="mt-3 fw-semibold"> No todos found </div>
-                        <small class="text-muted">
-                            Start by creating your first task
-                        </small>
-                    </div>`,
-            zeroRecords: `
-                    <div class="py-5 text-center">
-                        <i class="bi bi-search fs-1 text-muted"></i>
-                        <div class="mt-3 fw-semibold"> No matching result </div>
-                        <small class="text-muted">
-                            Try adjusting your filters
-                        </small>
-                    </div>`
-        }
-    });
+    toggleBulkButtons();
 });
 
-$(document).on('change', '.todo-status', function () {
-    let id = $(this).data('id');
-    $.ajax({
-        url: '{{ route("todo.status", ":id") }}'.replace(':id', id),
-        type: 'POST',
-        data: {
+function getSelectedTodos() {
+    let ids = [];
+    $('.todo-checkbox:checked').each(function () {
+        ids.push($(this).val());
+    });
+    return ids;
+}
+
+$('#bulkRestore').click(function () {
+
+    let btn = $(this);
+    let ids = getSelectedTodos();
+    if (ids.length === 0) {
+        showToast('Please select at least one todo');
+        return;
+    }
+    confirmAction('Restore selected todos?', function () {
+        buttonLoading(btn, true, 'Restoring...');
+        $.post('bulk/restore', {
             _token: $('meta[name="csrf-token"]').attr('content'),
-            status: $(this).val()
-        },
-        success: function () {
-            $('#todoTable').DataTable().ajax.reload(null, false);
-        },
-        fail: function (xhr) {
+            ids: ids
+        }, function () {
+            showToast('Todos restored');
+            location.reload();
+        }).done(function () {
+            showToast('Todos restored');
+        }).always(function () {
+            buttonLoading(btn, false);
+        }).fail(function (xhr) {
             ajaxFailHandler(xhr);
-        }
+        });
     });
 });
 
-$('#searchTitle').keyup(function () {
-    table.draw();
+$('#checkAll').change(function () {
+    $('.todo-checkbox').prop('checked', $(this).prop('checked'));
+    toggleBulkButtons();
 });
 
-$('#filterStatus, #filterPriority').change(function () {
-    table.draw();
+$(document).on('change', '.todo-checkbox', function () {
+    $('#checkAll').prop('checked', $('.todo-checkbox:checked').length === $('.todo-checkbox').length);
 });
+
+$(document).on('change', '.todo-checkbox', toggleBulkButtons);

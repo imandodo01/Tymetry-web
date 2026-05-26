@@ -10,6 +10,7 @@ use App\Models\ActivityLog;
 use App\Models\Todo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class TodoController extends Controller
@@ -43,27 +44,39 @@ class TodoController extends Controller
                     return '<span class="badge ' . $row->priority->badge() . '">' . $row->priority->label() . '</span>';
                 })
                 ->addColumn('action', function ($row) {
-                    // <a href="' . route('todo.edit', $row->id) . '"
-                    //     class="btn btn-sm btn-outline-dark">
-                    //     <i class="bi bi-pencil-square me-2"></i>
-                    // </a>
-                    return '
-                        <div class="d-flex justify-content-center gap-2">
-                            <button class="btn btn-sm btn-outline-dark editTodoBtn" data-id=' . $row->id . '>
-                                <i class="bi bi-pencil-square me-2"></i>
+                    return '<div class="d-flex justify-content-center gap-2">
+                        <a href="' . route('todo.edit', $row->id) . '"
+                            class="btn btn-sm btn-outline-dark">
+                            <i class="bi bi-pencil-square me-2"></i>
+                        </a>
+                        <form method="POST"
+                            action="' . route('todo.destroy', $row->id) . '"
+                            onsubmit="return confirm(\'Archive this todo?\')">
+                            ' . csrf_field() . '
+                            ' . method_field('DELETE') . '
+                            <button type="submit"
+                                class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-archive me-2"></i>
                             </button>
-                            <form method="POST"
-                                action="' . route('todo.destroy', $row->id) . '"
-                                onsubmit="return confirm(\'Archive this todo?\')">
-                                ' . csrf_field() . '
-                                ' . method_field('DELETE') . '
-                                <button type="submit"
-                                    class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-archive me-2"></i>
-                                </button>
-                            </form>
-                        </div>
-                    ';
+                        </form>
+                    </div>';
+                    // return '
+                    //     <div class="d-flex justify-content-center gap-2">
+                    //         <button class="btn btn-sm btn-outline-dark editTodoBtn" data-id=' . $row->id . '>
+                    //             <i class="bi bi-pencil-square me-2"></i>
+                    //         </button>
+                    //         <form method="POST"
+                    //             action="' . route('todo.destroy', $row->id) . '"
+                    //             onsubmit="return confirm(\'Archive this todo?\')">
+                    //             ' . csrf_field() . '
+                    //             ' . method_field('DELETE') . '
+                    //             <button type="submit"
+                    //                 class="btn btn-sm btn-outline-secondary">
+                    //                 <i class="bi bi-archive me-2"></i>
+                    //             </button>
+                    //         </form>
+                    //     </div>
+                    // ';
                 })->addColumn('status_action', function ($row) {
                     $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '">';
                     foreach (TodoStatus::cases() as $status) {
@@ -243,6 +256,35 @@ class TodoController extends Controller
 
         return response()->json([
             'success' => true
+        ]);
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer'],
+        ]);
+        DB::transaction(function () use ($validated) {
+            $todos = Todo::onlyTrashed()
+                ->whereIn('id', $validated['ids'])
+                ->where('user_id', auth()->id())
+                ->get();
+
+            foreach ($todos as $todo) {
+                $todo->restore();
+
+                ActivityLog::add(
+                    'restored',
+                    $todo,
+                    'Restored archived todo'
+                );
+            }
+        });
+
+        session()->flash('status', 'Selected todos restored successfully.');
+        return response()->json([
+            'success' => true,
         ]);
     }
 

@@ -26,11 +26,11 @@
                     Manage your task activity
                 </small>
             </div>
-            {{-- <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm">
+            <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>
                 Add Todo
-            </a> --}}
-            <button class="btn btn-outline-dark btn-sm" id="createTodoBtn">Add Todo</button>
+            </a>
+            {{-- <button class="btn btn-outline-dark btn-sm" id="createTodoBtn">Add Todo</button> --}}
         </div>
     </div>
 
