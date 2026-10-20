@@ -43,7 +43,7 @@ class OtpService
                         ->subject($purpose === 'two_factor' ? 'Your Tymetry sign-in code' : 'Verify your Tymetry email');
                 }
             );
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             Cache::forget($key);
             throw $exception;
         }
