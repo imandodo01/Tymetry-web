@@ -1,37 +1,34 @@
 # Tymetry — Todo Management System
 
-A Laravel-based task manager focused on a practical todo lifecycle: create and manage tasks, prioritize work, track due dates, and archive or restore completed/old items.
+A Laravel-based task manager for creating and organizing todos, tracking priorities and due dates, and archiving/restoring tasks.
 
-## Current status
+## Project status
 
-The core MVP is implemented. The project is in a testing and refinement stage; the README and Notion project notes are being reconciled against the current code. Feature presence in the code does not by itself mean every workflow has been manually tested.
+The core MVP is implemented. The code has received a source-level skim, but the application and its workflows have not been fully verified by an executed test suite. See the known findings and verification checklist in [TESTING.md](TESTING.md).
 
-## Features implemented in the current code
+## Features in the current code
 
-- Authentication routes for login and logout, plus forgot-password/reset-password and OTP flows.
-- Profile details and password update routes.
-- Todo creation, editing, status updates, and archiving.
-- Archived todo list and restore action.
-- Bulk mark-done, bulk archive, and bulk restore endpoints.
-- Inline status, priority, and due-date updates.
-- Filtering by title, status, and priority.
-- Smart ordering that prioritizes overdue and due-today tasks, then priority and due date.
-- Due-date labels and visual states for overdue, today, tomorrow, and upcoming tasks.
-- Dashboard counts for total, pending, in-progress, and done tasks; due-date lists; and recent activity.
-- Activity-log records for key todo actions.
+- Login/logout, password-reset and OTP routes.
+- Profile details and password updates.
+- Todo creation, editing, status changes, and archiving/restoration.
+- Bulk mark-done, archive, and restore endpoints.
+- Title/status/priority filters and dashboard summaries.
+- Due-date labels and task ordering.
+- Activity-log records for selected todo actions.
+
+Some listed workflows have known gaps; consult [TESTING.md](TESTING.md) before treating them as verified.
 
 ## Stack
 
 - PHP 8.3+
 - Laravel 13
 - MySQL (configure the database in `.env`)
-- Vite and Tailwind CSS tooling
+- Blade, JavaScript, Vite, and Tailwind CSS tooling
 - Yajra Laravel DataTables
-- JavaScript and Blade views
 
 ## Local setup
 
-Requirements: PHP version compatible with `composer.json`, Composer, Node.js/npm, and a configured database.
+Requirements: PHP compatible with `composer.json`, Composer, Node.js/npm, and a configured database.
 
 ```bash
 composer install
@@ -39,7 +36,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Configure the database connection in `.env`, then run:
+Configure the database in `.env`, then run:
 
 ```bash
 php artisan migrate
@@ -48,7 +45,12 @@ npm run build
 php artisan serve
 ```
 
-Alternatively, inspect the Composer `setup` script for the repository's bundled setup sequence.
+See the Composer `setup` script for the bundled setup sequence.
+
+## Project documentation
+
+- [Architecture overview](ARCHITECTURE.md) — request flow, code responsibilities, and data relationships.
+- [Testing guide](TESTING.md) — smoke checks, regression priorities, and source-review findings.
 
 ## Tests
 
@@ -58,8 +60,4 @@ Run the automated suite with:
 php artisan test
 ```
 
-Review the existing test coverage before treating the core workflows as fully verified. The code review that informed this README was a source inspection, not a test run.
-
-## Repository scope
-
-This repository contains the Laravel todo-management application. The separate `Tymetry-spa` repository describes a React/Vite company-profile and portfolio SPA; it is not the Laravel todo application.
+Do not treat a feature as verified just because its route or controller exists. Check the assertions and record actual test results.
