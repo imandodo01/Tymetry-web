@@ -64,7 +64,7 @@ The current visible feature test is a basic homepage response test; meaningful t
 These were identified by reading the current source, not by executing the app:
 
 1. **High priority — validate enum values.** `TodoRequest`, `updateStatus`, and `updatePriority` require values but do not restrict them to the supported status/priority enum values. Invalid values can fail later when Eloquent casts are read.
-2. **High priority — keep completion metadata consistent.** `toggleComplete` and `bulkDone` update status without maintaining `completed_at`; bulk completion also bypasses activity logging. Define the expected behavior and test all completion paths.
+2. **High priority — keep completion metadata consistent.** `toggleComplete` and `bulkDone` update status without maintaining `completed_at`; bulk completion and bulk archive also bypass activity logging. Define the expected behavior and test all completion paths.
 3. **Medium priority — inline priority/due-date controls are not rendered.** The controller returns `priority_action` and `due_action`, but the DataTables column configuration renders neither. The JavaScript listeners therefore have no matching controls in the current table.
 4. **Medium priority — inline priority/due-date HTTP methods disagree.** The routes use `PATCH` for both endpoints, but the JavaScript sends `POST`. These requests would be rejected if the controls were rendered.
 5. **Medium priority — due time is currently incomplete.** The migration has `due_time` and `TodoRequest` validates it, but the model's fillable list and the shared form do not expose/persist it. Either implement it end-to-end or remove the unused field/validation.
@@ -76,7 +76,7 @@ These were identified by reading the current source, not by executing the app:
 11. **Medium priority — due-date form markup needs correction.** The shared Blade form has an extra quote after the date input's `value` attribute and malformed-looking invalid-feedback markup. Verify rendered HTML and validation errors, then correct it.
 12. **Medium priority — AJAX error handlers use the wrong option name.** In `todo.js`, several `$.ajax({ ... })` calls specify `fail`; jQuery's AJAX options use `error`. A chained `.fail()` is valid, but the option is not.
 13. **Low priority — environment example typo.** `.env.example` uses `wAPP_NAME` instead of `APP_NAME`.
-14. **Low priority — list UI leftovers.** Both status-related table headers are labelled “Status”; bulk-done JavaScript shows archive wording and duplicate success-toast attempts; keyboard shortcuts point to old element IDs that are absent from the current view.
+14. **Low priority — list UI leftovers.** Both status-related table headers are labelled “Status”; bulk-done JavaScript shows archive wording; bulk archive/restore flows have duplicate success-toast attempts; keyboard shortcuts point to old element IDs that are absent from the current view.
 15. **Low priority — route and view cleanup.** The root GET route is declared twice; the edit page heading still says “Create Todo”; password-recovery views also use “Login” as their document title; the OTP stylesheet uses a relative path rather than Laravel's `asset()` helper.
 16. **Low priority — stale modal handlers.** The old modal-based create/edit handlers reference controls that are currently commented out or absent.
 
