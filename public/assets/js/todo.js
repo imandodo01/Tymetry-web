@@ -21,7 +21,7 @@ $(function () {
                 d.status = $('#filterStatus').val();
                 d.priority = $('#filterPriority').val();
             },
-            fail: function (xhr) {
+            error: function (xhr) {
                 ajaxFailHandler(xhr);
             }
         },
@@ -80,7 +80,7 @@ $(document).on('change', '.todo-status', function () {
             $('#todoTable').DataTable().ajax.reload(null, false);
             showToast('Status updated');
         },
-        fail: function (xhr) {
+        error: function (xhr) {
             ajaxFailHandler(xhr);
         }
     });
@@ -92,20 +92,6 @@ $('#searchTitle').keyup(function () {
 
 $('#filterStatus, #filterPriority').change(function () {
     table.draw();
-});
-
-$('#createTodoBtn').click(function () {
-    $('#todoModalBody').load('todos/create', function () {
-        $('#todoModal').modal('show');
-    });
-});
-
-$(document).on('click', '.editTodoBtn', function () {
-    let id = $(this).data('id');
-    console.log($(this).data());
-    $('#todoModalBody').load('todos/' + id + '/edit'.replace(':id', id), function () {
-        $('#todoModal').modal('show');
-    });
 });
 
 function getSelectedTodos() {
@@ -131,7 +117,6 @@ $('#bulkArchive').click(function () {
             ids: ids
         }, function () {
             table.ajax.reload(null, false);
-            showToast('Todos archived');
         }).done(function () {
             showToast('Todos archived');
         }).always(function () {
@@ -150,20 +135,15 @@ $('#bulkDone').click(function () {
         return;
     }
     $('#todoModalBody').html(`
-        <div class="text-center py-5">
-            <div class="spinner-border spinner-border-sm">
-            </div>
-        </div>`);
     confirmAction('Mark as Done selected todos?', function () {
-        buttonLoading(btn, true, 'Archiving...');
+        buttonLoading(btn, true, 'Marking done...');
         $.post('todos/bulk/done', {
             _token: $('meta[name="csrf-token"]').attr('content'),
             ids: ids
         }, function () {
             table.ajax.reload(null, false);
-            showToast('Status updated');
         }).done(function () {
-            showToast('Todos archived');
+            showToast('Todos marked done');
         }).always(function () {
             buttonLoading(btn, false);
         }).fail(function (xhr) {
@@ -196,7 +176,7 @@ $(document).on('click', '.toggleCompleteBtn', function () {
             table.ajax.reload(null, false);
             showToast('Todo updated');
         },
-        fail: function (xhr) {
+        error: function (xhr) {
             ajaxFailHandler(xhr);
         }
     });
@@ -205,7 +185,7 @@ $(document).on('change', '.inlinePriority', function () {
     let select = $(this);
     $.ajax({
         url: `todos/${select.data('id')}/priority`,
-        type: 'POST',
+        type: 'PATCH',
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),
             priority: select.val()
@@ -220,7 +200,7 @@ $(document).on('change', '.inlineDueDate', function () {
     let input = $(this);
     $.ajax({
         url: `todos/${input.data('id')}/due-date`,
-        type: 'POST',
+        type: 'PATCH',
         data: {
             _token: $('meta[name="csrf-token"]').attr('content'),
             due_date: input.val()
@@ -236,12 +216,4 @@ $(document).keydown(function (e) {
         return;
     }
 
-    if (e.key === 'n') {
-        $('#createTodoBtn').click();
-    }
-
-    if (e.key === '/') {
-        e.preventDefault();
-        $('#todoSearch').focus();
-    }
 });
