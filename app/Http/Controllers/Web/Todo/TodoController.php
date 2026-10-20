@@ -239,26 +239,48 @@ class TodoController extends Controller
 
     public function bulkDone(Request $request)
     {
-        Todo::whereIn('id', $request->ids)
-            ->where('user_id', auth()->id())
-            ->update(['status' => TodoStatus::Done]);
-
-        return response()->json([
-            'success' => true
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'distinct'],
         ]);
-    }
 
+        DB::transaction(function () use ($validated) {
+            $todos = Todo::whereIn('id', $validated['ids'])
+                ->where('user_id', auth()->id())
+                ->get();
+
+            foreach ($todos as $todo) {
+                $todo->update([
+                    'status' => TodoStatus::Done,
+                    'completed_at' => $todo->completed_at ?? now(),
+                ]);
+
+                ActivityLog::add('status_updated', $todo, 'Marked todo as done in bulk');
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
     public function bulkArchive(Request $request)
     {
-        Todo::whereIn('id', $request->ids)
-            ->where('user_id', auth()->id())
-            ->delete();
-
-        return response()->json([
-            'success' => true
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'distinct'],
         ]);
-    }
 
+        DB::transaction(function () use ($validated) {
+            $todos = Todo::whereIn('id', $validated['ids'])
+                ->where('user_id', auth()->id())
+                ->get();
+
+            foreach ($todos as $todo) {
+                ActivityLog::add('archived', $todo, 'Archived todo in bulk');
+                $todo->delete();
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
     public function bulkRestore(Request $request)
     {
         $validated = $request->validate([
@@ -294,15 +316,14 @@ class TodoController extends Controller
             ->todos()
             ->findOrFail($id);
 
-        abort_if($todo->user_id !== auth()->id(), 403);
-
-        $todo->status = $todo->status === TodoStatus::Done ? TodoStatus::Pending : TodoStatus::Done;
+        $isCompleting = $todo->status !== TodoStatus::Done;
+        $todo->status = $isCompleting ? TodoStatus::Done : TodoStatus::Pending;
+        $todo->completed_at = $isCompleting ? ($todo->completed_at ?? now()) : null;
         $todo->save();
+
         ActivityLog::add('status_updated', $todo, 'Updated completion status');
 
-        return response()->json([
-            'success' => true
-        ]);
+        return response()->json(['success' => true]);
     }
     public function updatePriority(Request $request, $id)
     {
