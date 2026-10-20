@@ -32,11 +32,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
 
-        if (!$user->email_verified_at && config('authentication.login_verification_bypass')) {
-            $user->forceFill(['email_verified_at' => now()])->save();
-        }
-
-        if (!$user->email_verified_at) {
+        if (!$user->email_verified_at && !config('authentication.login_verification_bypass')) {
             return $this->beginVerification($request, $user, 'email_verification', $otp);
         }
 
