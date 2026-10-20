@@ -32,24 +32,32 @@
         </div>
     </div>
     <div class="col-lg-6 mb-4">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3 px-4">
                 <h5 class="mb-0 fw-semibold">Due Today</h5>
+                <small class="text-muted">Tasks grouped by current status</small>
             </div>
             <div class="card-body p-4">
-                @forelse ($dueToday as $todo)
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div>
-                        <div class="fw-semibold">{{ $todo->title }}</div>
-                        <small class="text-muted">{{ $todo->priority->label() }}</small>
+                @foreach ([
+                    'Pending' => $pendingDueToday,
+                    'In Progress' => $progressDueToday,
+                    'Done' => $doneDueToday,
+                ] as $statusLabel => $todos)
+                <div class="mb-3">
+                    <h6 class="fw-semibold">{{ $statusLabel }}</h6>
+                    @forelse ($todos as $todo)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">{{ $todo->title }}</div>
+                            <small class="text-muted">{{ $todo->priority->label() }}</small>
+                        </div>
+                        <span class="badge {{ $todo->status->badge() }}">{{ $todo->status->label() }}</span>
                     </div>
-                    <span class="badge {{ $todo->status->badge() }}">{{ $todo->status->label() }}</span>
+                    @empty
+                    <div class="text-muted small py-2">No {{ strtolower($statusLabel) }} tasks due today</div>
+                    @endforelse
                 </div>
-                @empty
-                <div class="text-muted text-center py-4">
-                    No task due today
-                </div>
-                @endforelse
+                @endforeach
             </div>
         </div>
     </div>
@@ -59,7 +67,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3 px-4">
                 <h6 class="mb-0 fw-semibold text-muted">
-                    Today Tasks
+                    Open Tasks Due Today
                 </h6>
             </div>
             <div class="card-body p-4">
