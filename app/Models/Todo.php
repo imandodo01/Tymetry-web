@@ -25,6 +25,7 @@ class Todo extends Model
         'status',
         'priority',
         'due_date',
+        'due_time',
         'completed_at',
     ];
 
