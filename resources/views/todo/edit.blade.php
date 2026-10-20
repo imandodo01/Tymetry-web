@@ -6,7 +6,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 py-3 px-4">
         <h5 class="mb-0 fw-semibold">
-            Create Todo
+            Edit Todo
         </h5>
     </div>
 
