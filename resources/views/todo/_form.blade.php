@@ -12,6 +12,17 @@
 </div>
 
 <div class="mb-4">
+    <label class="form-label">Due Time</label>
+    <input type="time" name="due_time" class="form-control @error('due_time') is-invalid @enderror"
+        value="{{ old('due_time', $todo->due_time ?? '') }}">
+    @error('due_time')
+    <span class="invalid-feedback">
+        {{ $message }}
+    </span>
+    @enderror
+</div>
+
+<div class="mb-4">
     <label class="form-label">Description</label>
     <textarea name="description" rows="4"
         class="form-control">{{ old('description', $todo->description ?? '') }}</textarea>
