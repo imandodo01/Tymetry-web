@@ -21,11 +21,16 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
         ]);
 
-        if ($validated['email'] !== $user->email) {
-            $validated['email_verified_at'] = null;
-        }
+        $emailChanged = $validated['email'] !== $user->email;
 
-        $user->update($validated);
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
+        }
 
         return back()->with('success', 'Profile updated.');
     }
