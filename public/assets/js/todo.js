@@ -135,7 +135,6 @@ $('#bulkDone').click(function () {
         showToast('Please select at least one todo');
         return;
     }
-    $('#todoModalBody').html(`
     confirmAction('Mark as Done selected todos?', function () {
         buttonLoading(btn, true, 'Marking done...');
         $.post('todos/bulk/done', {
@@ -192,7 +191,11 @@ $(document).on('change', '.inlinePriority', function () {
             priority: select.val()
         },
         success: function () {
+            table.ajax.reload(null, false);
             showToast('Priority updated');
+        },
+        error: function (xhr) {
+            ajaxFailHandler(xhr);
         }
     });
 });
@@ -207,7 +210,11 @@ $(document).on('change', '.inlineDueDate', function () {
             due_date: input.val()
         },
         success: function () {
+            table.ajax.reload(null, false);
             showToast('Due date updated');
+        },
+        error: function (xhr) {
+            ajaxFailHandler(xhr);
         }
     });
 });
