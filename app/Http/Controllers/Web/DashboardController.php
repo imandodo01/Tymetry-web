@@ -27,8 +27,23 @@ class DashboardController extends Controller
             ->where('status', TodoStatus::Done)
             ->count();
 
-        $dueToday = $user->todos()
+        $pendingDueToday = $user->todos()
             ->whereDate('due_date', today())
+            ->where('status', TodoStatus::Pending)
+            ->smartOrder()
+            ->take(5)
+            ->get();
+
+        $progressDueToday = $user->todos()
+            ->whereDate('due_date', today())
+            ->where('status', TodoStatus::Progress)
+            ->smartOrder()
+            ->take(5)
+            ->get();
+
+        $doneDueToday = $user->todos()
+            ->whereDate('due_date', today())
+            ->where('status', TodoStatus::Done)
             ->smartOrder()
             ->take(5)
             ->get();
@@ -89,7 +104,9 @@ class DashboardController extends Controller
             'pendingTodo',
             'progressTodo',
             'doneTodo',
-            'dueToday',
+            'pendingDueToday',
+            'progressDueToday',
+            'doneDueToday',
             'recentTodo',
             'statusChart',
             'activities',
