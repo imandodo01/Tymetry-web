@@ -219,9 +219,3 @@ $(document).on('change', '.inlineDueDate', function () {
     });
 });
 
-$(document).keydown(function (e) {
-    if ($(e.target).is('input, textarea')) {
-        return;
-    }
-
-});
