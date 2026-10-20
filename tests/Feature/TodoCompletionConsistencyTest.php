@@ -73,6 +73,17 @@ class TodoCompletionConsistencyTest extends TestCase
         ]);
     }
 
+
+    public function test_bulk_restore_rejects_an_empty_selection(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('todo.bulk.restore'), ['ids' => []])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids');
+    }
+
     public function test_bulk_done_requires_a_non_empty_array_of_distinct_integer_ids(): void
     {
         $user = User::factory()->create();
