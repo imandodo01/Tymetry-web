@@ -1,16 +1,10 @@
 # Testing Guide
 
-This guide describes a repeatable verification path for Tymetry-web. The checklist is a plan, not evidence that tests have already passed.
+Use this guide to verify the current Tymetry-web behavior. The checklist is not evidence that a test has passed.
 
-## 1. Local prerequisites
+## Setup
 
-- PHP version compatible with `composer.json` (currently PHP 8.3+).
-- Composer.
-- Node.js and npm.
-- A configured database and valid `.env`.
-- Application key generated.
-
-Typical setup:
+Requirements: PHP 8.3+, Composer, Node.js/npm, a configured database, and a valid application key.
 
 ```bash
 composer install
@@ -24,83 +18,52 @@ Configure the database in `.env`, then run:
 php artisan migrate
 npm install
 npm run build
-```
-
-Use a disposable/test database for tests that reset or mutate data. Never point destructive test setup at production data.
-
-## 2. Automated tests
-
-Run the existing suite:
-
-```bash
 php artisan test
 ```
 
-Record the date, environment, command, pass/fail result, and any known blocker when reporting results. A successful test command only verifies the assertions that exist; it does not prove untested flows work.
+Use a disposable test database for tests that reset or mutate data. Never run destructive test setup against production data.
 
-## 3. Core manual smoke tests
+## Automated tests
 
-### Authentication and account
+Run `php artisan test`. Record the date, commit SHA, PHP/database environment, command, result, and any blocker. Passing tests only verify assertions that exist.
 
-- [ ] Guest can open the login page.
-- [ ] Valid credentials sign in and reach the dashboard.
-- [ ] Invalid credentials show an error without authenticating.
+The current visible feature test is a basic homepage response test; meaningful todo/authentication regression coverage is still needed.
+
+## Manual smoke checklist
+
+### Authentication and profile
+- [ ] Guest can open login; valid credentials sign in; invalid credentials show an error.
 - [ ] Logout invalidates the session.
 - [ ] Password reset and OTP flows work in the configured environment.
-- [ ] An authenticated user can update profile details and password.
+- [ ] Profile and password updates persist correctly.
 
-### Todo management
-
-- [ ] Create a todo with title, description, status, priority, and optional due date.
-- [ ] Required-field and invalid-input validation behaves correctly.
-- [ ] Edit a todo and confirm changes persist after reload.
+### Todo lifecycle
+- [ ] Create and edit todos; verify required fields and invalid values are rejected.
 - [ ] Filter by title, status, and priority.
-- [ ] Change status, priority, and due date using inline controls.
-- [ ] Quick-complete toggles a todo between done and not-done states.
-- [ ] Smart ordering places overdue and due-today unfinished tasks as intended.
-- [ ] Due-date labels correctly show no date, overdue, today, tomorrow, and upcoming.
-- [ ] Archive a todo; verify it disappears from the active list and appears in the archive.
-- [ ] Restore an archived todo and verify it returns to the active list.
-- [ ] Bulk mark-done, bulk archive, and bulk restore work for selected rows.
-- [ ] Empty selections and malformed bulk payloads are handled safely.
+- [ ] Update status, priority, and due date from the list.
+- [ ] Quick-complete and bulk mark-done keep status and completion timestamps consistent.
+- [ ] Smart ordering and due-date labels behave correctly for overdue, today, tomorrow, upcoming, and no-date tasks.
+- [ ] Archive, restore, and bulk actions work, including empty or malformed selections.
+- [ ] Activity logs reflect the actions the product intends to record.
 
-### Ownership and authorization
+### Ownership and dashboard
+- [ ] User A cannot read or mutate User B's todos, including through bulk endpoints.
+- [ ] Guests cannot access dashboard, todo, or profile routes.
+- [ ] Dashboard counts, due-date lists, and activity are scoped to the signed-in user.
+- [ ] Empty states render correctly; no new browser-console or server-log errors appear.
 
-- [ ] User A cannot view, edit, change, archive, or restore User B's todos by changing an ID in a request.
-- [ ] Bulk endpoints ignore or reject IDs that do not belong to the authenticated user.
-- [ ] Guest requests to protected dashboard, todo, and profile routes are redirected or rejected.
-- [ ] Activity logs are associated with the correct user and todo.
+## Source-review findings to verify/fix
 
-### Dashboard and regression
+These were identified by reading the current source, not by executing the app:
 
-- [ ] Counts reflect the current user's todos.
-- [ ] Due-today, overdue, and upcoming lists exclude completed tasks where intended.
-- [ ] Dashboard activity shows recent actions.
-- [ ] Empty states render when there are no todos.
-- [ ] The todo table renders correctly on desktop and narrow/mobile screens.
-- [ ] Browser console and server logs show no new errors during the smoke test.
+1. **High priority — validate enum values.** `TodoRequest`, `updateStatus`, and `updatePriority` require values but do not restrict them to the supported status/priority enum values. Invalid values can fail later when Eloquent casts are read.
+2. **High priority — keep completion metadata consistent.** `toggleComplete` and `bulkDone` update status without maintaining `completed_at`; bulk completion also bypasses activity logging. Define the expected behavior and test all completion paths.
+3. **Medium priority — due-date inline control is not rendered in the active table.** The controller returns `due_action`, but the DataTables column configuration does not display it. The due-date endpoint exists, while the current list appears to offer no inline date input.
+4. **Medium priority — due time is currently incomplete.** The migration has `due_time` and `TodoRequest` validates it, but the model's fillable list and the shared form do not expose/persist it. Either implement it end-to-end or remove the unused field/validation.
+5. **Medium priority — AJAX error handlers use the wrong option name.** In `todo.js`, several `$.ajax({ ... })` calls specify `fail`; jQuery's AJAX options use `error`. A chained `.fail()` is valid, but the option is not.
+6. **Low priority — list UI leftovers.** Both status-related table headers are labelled “Status”; bulk-done JavaScript shows archive wording and duplicate success toasts; the keyboard shortcuts point to old element IDs that are absent from the current view.
+7. **Low priority — cleanup.** The root GET route is declared twice, and the old modal-based create/edit handlers reference controls currently commented out or absent.
 
-## 4. Focused regression tests to add
+## Suggested regression tests
 
-Prioritize automated feature tests for:
-
-1. Todo CRUD validation and persistence.
-2. Ownership boundaries for single-item and bulk actions.
-3. Archive/restore lifecycle.
-4. Valid and invalid status/priority values.
-5. Due-date updates and due-date state boundaries.
-6. Consistent `completed_at` behavior for standard status changes, quick-complete, and bulk completion.
-7. Activity-log creation for the actions the product intends to audit.
-8. Dashboard totals and due-date lists.
-
-## 5. Recording results
-
-For each test run, record:
-
-- Date and commit SHA.
-- Environment/PHP version and database type.
-- Command or manual scenario.
-- Result: Pass / Fail / Blocked / Not run.
-- Failure details and follow-up issue.
-
-Do not mark a feature as verified just because its route or controller exists. Use passing automated tests or a recorded manual check as evidence.
+Prioritize enum validation, user ownership for single and bulk actions, archive/restore, completion timestamp consistency, due-date updates, due-time persistence (if retained), and dashboard totals. Re-run the automated suite after each fix and record actual results here or in the PR.
