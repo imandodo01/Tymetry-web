@@ -58,11 +58,13 @@ flowchart TD
 - Todos use soft deletes so archived records can be restored.
 - Status and priority are integer-backed PHP enums cast by the `Todo` model.
 - Most todo reads and mutations must remain scoped to the authenticated user's ID. Preserve this ownership boundary when adding endpoints.
-- `smartOrder()` uses `CURDATE()` and currently assumes a MySQL-compatible database.
+- `smartOrder()` uses `CURDATE()` and currently assumes a MySQL-compatible database; PHPUnit is configured for SQLite, so this is a test-compatibility concern.
+- The todo table's JavaScript and routes must agree on HTTP methods. The priority and due-date routes are `PATCH`, but their current JavaScript handlers send `POST`; the corresponding controls also are not currently included in the rendered DataTables columns.
+- OTP endpoints are present in routing but their controller actions are currently empty, so OTP should be treated as unfinished rather than working authentication functionality.
 
 ## Current review notes
 
-The source skim found gaps around enum-value validation, consistent `completed_at` handling, the missing inline due-date table control, and the unused/incomplete `due_time` field. The full list and recommended regression checks live in [TESTING.md](TESTING.md).
+The source skim found gaps around enum-value validation, consistent `completed_at` handling, missing inline controls and HTTP-method mismatches, incomplete `due_time` persistence, profile email uniqueness, login throttling, SQLite compatibility, and unfinished OTP handlers. The full list and recommended regression checks live in [TESTING.md](TESTING.md).
 
 ## Change guidance
 
