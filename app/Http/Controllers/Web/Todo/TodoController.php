@@ -284,8 +284,8 @@ class TodoController extends Controller
     public function bulkRestore(Request $request)
     {
         $validated = $request->validate([
-            'ids' => ['required', 'array'],
-            'ids.*' => ['integer'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'distinct'],
         ]);
         DB::transaction(function () use ($validated) {
             $todos = Todo::onlyTrashed()
