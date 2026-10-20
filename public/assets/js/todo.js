@@ -30,13 +30,14 @@ $(function () {
             { data: 'title' },
             { data: 'status_badge' },
             { data: 'status_action' },
-            { data: 'priority_badge' },
+            { data: 'priority_action' },
             { data: 'due_status' },
+            { data: 'due_action' },
             { data: 'action' },
         ],
         columnDefs: [
             {
-                targets: [0, 6],
+                targets: [0, 7],
                 orderable: false,
                 searchable: false
             }
