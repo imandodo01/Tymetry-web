@@ -1,55 +1,65 @@
-# Tymetry-web
-# Todo Management System
+# Tymetry — Todo Management System
 
-A simple productivity-focused todo management application.
-## Dashboard
+A Laravel-based task manager focused on a practical todo lifecycle: create and manage tasks, prioritize work, track due dates, and archive or restore completed/old items.
 
-![Dashboard](screenshots/dashboard.png)
+## Current status
 
-## Todo List
+The core MVP is implemented. The project is in a testing and refinement stage; the README and Notion project notes are being reconciled against the current code. Feature presence in the code does not by itself mean every workflow has been manually tested.
 
-![Todo List](screenshots/todo-list.png)
+## Features implemented in the current code
 
-## Archive
+- Authentication routes for login and logout, plus forgot-password/reset-password and OTP flows.
+- Profile details and password update routes.
+- Todo creation, editing, status updates, and archiving.
+- Archived todo list and restore action.
+- Bulk mark-done, bulk archive, and bulk restore endpoints.
+- Inline status, priority, and due-date updates.
+- Filtering by title, status, and priority.
+- Smart ordering that prioritizes overdue and due-today tasks, then priority and due date.
+- Due-date labels and visual states for overdue, today, tomorrow, and upcoming tasks.
+- Dashboard counts for total, pending, in-progress, and done tasks; due-date lists; and recent activity.
+- Activity-log records for key todo actions.
 
-![Mobile View](screenshots/archive.png)
+## Stack
 
-## Features
+- PHP 8.3+
+- Laravel 13
+- MySQL (configure the database in `.env`)
+- Vite and Tailwind CSS tooling
+- Yajra Laravel DataTables
+- JavaScript and Blade views
 
-- Todo Management
-- Task Creation and Update
-- Smart Task Ordering
-- Quick Productivity Interactions
-- Workflow Optimization
+## Local setup
 
-## Tech Stack
-
-- Laravel / PHP
-- MySQL
-- JavaScript
-- HTML/CSS
-
-## Installation
+Requirements: PHP version compatible with `composer.json`, Composer, Node.js/npm, and a configured database.
 
 ```bash
 composer install
-npm install
+cp .env.example .env
+php artisan key:generate
 ```
 
-Setup `.env` configuration and database connection.
-
-Run migration:
+Configure the database connection in `.env`, then run:
 
 ```bash
 php artisan migrate
-```
-
-Run development server:
-
-```bash
+npm install
+npm run build
 php artisan serve
 ```
 
-## Status
+Alternatively, inspect the Composer `setup` script for the repository's bundled setup sequence.
 
-Currently under active development.
+## Tests
+
+Run the automated suite with:
+
+```bash
+php artisan test
+```
+
+Review the existing test coverage before treating the core workflows as fully verified. The code review that informed this README was a source inspection, not a test run.
+
+## Repository scope
+
+This repository contains the Laravel todo-management application. The separate `Tymetry-spa` repository describes a React/Vite company-profile and portfolio SPA; it is not the Laravel todo application.
