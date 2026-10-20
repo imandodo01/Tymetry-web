@@ -17,7 +17,7 @@ Route::get('/sample', function () {
 
 Route::controller(AuthController::class)->name('auth.')->group(function () {
     Route::get('/login', 'index')->name('index');
-    Route::post('/login', 'login')->name('login');
+    Route::post('/login', 'login')->middleware('throttle:5,1')->name('login');
     Route::post('/logout', 'logout')->name('logout')->middleware('auth');
 });
 
