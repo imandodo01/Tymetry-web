@@ -54,6 +54,25 @@ class TodoCompletionConsistencyTest extends TestCase
         $this->assertNull($todo->completed_at);
     }
 
+
+    public function test_bulk_archive_soft_deletes_todos_and_records_activity(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->postJson(route('todo.bulk.archive'), ['ids' => [$todo->id]])
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertSoftDeleted('todos', ['id' => $todo->id]);
+        $this->assertDatabaseHas('activity_logs', [
+            'todo_id' => $todo->id,
+            'user_id' => $user->id,
+            'action' => 'archived',
+        ]);
+    }
+
     public function test_bulk_done_requires_a_non_empty_array_of_distinct_integer_ids(): void
     {
         $user = User::factory()->create();
