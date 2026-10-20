@@ -113,6 +113,57 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h6 class="mb-0 fw-semibold text-muted">Two-Factor Authentication</h6>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small">
+                        When enabled, signing in requires your password and a one-time code sent to your verified email.
+                    </p>
+                    <p>
+                        Email status:
+                        @if (auth()->user()->email_verified_at)
+                            <span class="badge bg-success">Verified</span>
+                        @else
+                            <span class="badge bg-warning text-dark">Not verified</span>
+                        @endif
+                    </p>
+
+                    <form method="POST" action="{{ route('profile.two-factor') }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-3">
+                            <label for="two_factor_enabled" class="form-label">Two-factor authentication</label>
+                            <select id="two_factor_enabled" name="two_factor_enabled"
+                                class="form-select @error('two_factor_enabled') is-invalid @enderror">
+                                <option value="0" @selected(!auth()->user()->two_factor_enabled)>Disabled</option>
+                                <option value="1" @selected(auth()->user()->two_factor_enabled)>Enabled</option>
+                            </select>
+                            @error('two_factor_enabled')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="two_factor_current_password" class="form-label">Confirm current password</label>
+                            <input type="password" id="two_factor_current_password" name="current_password"
+                                class="form-control @error('current_password') is-invalid @enderror" required>
+                            @error('current_password')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <button type="submit" class="btn btn-dark btn-sm px-4">Save security setting</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
