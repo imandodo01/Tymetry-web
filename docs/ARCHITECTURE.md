@@ -64,7 +64,7 @@ flowchart TD
 
 ## Current review notes
 
-The source skim found gaps around enum-value validation, consistent `completed_at` handling, missing inline controls and HTTP-method mismatches, incomplete `due_time` persistence, profile email uniqueness, login throttling, SQLite compatibility, and unfinished OTP handlers. The full list and recommended regression checks live in [TESTING.md](TESTING.md).
+The source skim found gaps around enum-value validation, consistent `completed_at` handling, missing inline controls and HTTP-method mismatches, incomplete `due_time` persistence, profile email uniqueness, login throttling, SQLite compatibility, and unfinished OTP handlers. The full list of findings lives in [REVIEW-FINDINGS.md](REVIEW-FINDINGS.md), and the recommended regression checks live in [TESTING.md](TESTING.md).
 
 ## Change guidance
 
