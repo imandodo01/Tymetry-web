@@ -3,7 +3,7 @@
 @section('title', 'OTP Verification')
 
 @push('styles')
-<link rel="stylesheet" href="assets/css/otp.css">
+<link rel="stylesheet" href="{{ asset('assets/css/otp.css') }}">
 @endpush
 
 @section('content')

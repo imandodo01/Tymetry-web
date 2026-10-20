@@ -8,7 +8,6 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Todo\TodoController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [AuthController::class, 'index']);
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
 Route::get('/sample', function () {

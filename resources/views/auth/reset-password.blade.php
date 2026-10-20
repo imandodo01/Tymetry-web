@@ -1,6 +1,6 @@
 @extends('layout.app-plain')
 
-@section('title', 'Login')
+@section('title', 'Reset Password')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/login.css') }}">
