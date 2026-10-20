@@ -12,6 +12,14 @@
             Manage your account information and security settings
         </small>
     </div>
+
+    @if (session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if ($errors->has('current_password'))
+    <div class="alert alert-danger">{{ $errors->first('current_password') }}</div>
+    @endif
     <div class="row">
         <!-- Profile Information -->
         <div class="col-lg-6 mb-4">
