@@ -45,10 +45,10 @@
 <div class="mb-4">
     <label class="form-label">Due Date</label>
     <input type="date" name="due_date" class="form-control @error('due_date') is-invalid @enderror"
-        value="{{ old('due_date', $todo->due_date ?? '' ? \Carbon\Carbon::parse($todo->due_date)->format('Y-m-d') : '') }}"">
-                @error('due_date')
-                <span class=" invalid-feedback">
-    {{ $message }}
+        value="{{ old('due_date', !empty($todo->due_date) ? \\Carbon\\Carbon::parse($todo->due_date)->format('Y-m-d') : '') }}">
+    @error('due_date')
+    <span class="invalid-feedback">
+        {{ $message }}
     </span>
     @enderror
 </div>
