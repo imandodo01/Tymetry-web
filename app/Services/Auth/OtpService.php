@@ -33,15 +33,20 @@ class OtpService
             'attempts' => 0,
         ], now()->addMinutes(config('authentication.otp_expiry_minutes', 5)));
 
-        Mail::raw(
-            "Your Tymetry verification code is {$code}. It expires in "
-                . config('authentication.otp_expiry_minutes', 5)
-                . " minutes. If you did not request this code, you can ignore this email.",
-            function ($message) use ($user, $purpose): void {
-                $message->to($user->email)
-                    ->subject($purpose === 'two_factor' ? 'Your Tymetry sign-in code' : 'Verify your Tymetry email');
-            }
-        );
+        try {
+            Mail::raw(
+                "Your Tymetry verification code is {$code}. It expires in "
+                    . config('authentication.otp_expiry_minutes', 5)
+                    . " minutes. If you did not request this code, you can ignore this email.",
+                function ($message) use ($user, $purpose): void {
+                    $message->to($user->email)
+                        ->subject($purpose === 'two_factor' ? 'Your Tymetry sign-in code' : 'Verify your Tymetry email');
+                }
+            );
+        } catch (\\Throwable $exception) {
+            Cache::forget($key);
+            throw $exception;
+        }
     }
 
     public function verify(User $user, string $purpose, string $code): bool
