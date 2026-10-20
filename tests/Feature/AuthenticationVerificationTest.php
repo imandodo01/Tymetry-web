@@ -78,7 +78,7 @@ class AuthenticationVerificationTest extends TestCase
             ->assertSessionHas('pending_auth_purpose', 'two_factor');
 
         $this->assertGuest();
-        $this->assertNotNull($user->fresh()->email_verified_at);
+        $this->assertNull($user->fresh()->email_verified_at);
     }
 
     public function test_development_bypass_skips_only_email_verification(): void
@@ -97,8 +97,9 @@ class AuthenticationVerificationTest extends TestCase
         ])->assertRedirect('/dashboard');
 
         $this->assertAuthenticatedAs($user);
-        $this->assertNotNull($user->fresh()->email_verified_at);
+        $this->assertNull($user->fresh()->email_verified_at);
     }
+
     public function test_enabled_two_factor_requires_a_code_after_password_login(): void
     {
         $user = User::factory()->create([
