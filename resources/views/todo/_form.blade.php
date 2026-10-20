@@ -12,17 +12,6 @@
 </div>
 
 <div class="mb-4">
-    <label class="form-label">Due Time</label>
-    <input type="time" name="due_time" class="form-control @error('due_time') is-invalid @enderror"
-        value="{{ old('due_time', $todo->due_time ?? '') }}">
-    @error('due_time')
-    <span class="invalid-feedback">
-        {{ $message }}
-    </span>
-    @enderror
-</div>
-
-<div class="mb-4">
     <label class="form-label">Description</label>
     <textarea name="description" rows="4"
         class="form-control">{{ old('description', $todo->description ?? '') }}</textarea>
@@ -58,6 +47,16 @@
     <input type="date" name="due_date" class="form-control @error('due_date') is-invalid @enderror"
         value="{{ old('due_date', !empty($todo->due_date) ? \Carbon\Carbon::parse($todo->due_date)->format('Y-m-d') : '') }}">
     @error('due_date')
+    <span class="invalid-feedback">
+        {{ $message }}
+    </span>
+    @enderror
+</div>
+<div class="mb-4">
+    <label class="form-label">Due Time</label>
+    <input type="time" name="due_time" class="form-control @error('due_time') is-invalid @enderror"
+        value="{{ old('due_time', $todo->due_time ?? '') }}">
+    @error('due_time')
     <span class="invalid-feedback">
         {{ $message }}
     </span>
