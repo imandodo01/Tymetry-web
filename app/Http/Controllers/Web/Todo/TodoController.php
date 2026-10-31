@@ -11,6 +11,7 @@ use App\Models\Todo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class TodoController extends Controller
@@ -184,7 +185,7 @@ class TodoController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validated = $request->validate([
-            'status' => ['required'],
+            'status' => ['required', 'integer', Rule::in(array_map(fn (TodoStatus $status) => $status->value, TodoStatus::cases()))],
         ]);
 
         $todo = auth()->user()
@@ -334,7 +335,7 @@ class TodoController extends Controller
         abort_if($todo->user_id !== auth()->id(), 403);
 
         $validated = $request->validate([
-            'priority' => ['required']
+            'priority' => ['required', 'integer', Rule::in(array_map(fn (TodoPriority $priority) => $priority->value, TodoPriority::cases()))]
         ]);
 
         $todo->update([
