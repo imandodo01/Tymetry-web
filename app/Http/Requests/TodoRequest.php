@@ -28,7 +28,7 @@ class TodoRequest extends FormRequest
             'status' => ['required'],
             'priority' => ['required'],
             'due_date' => ['nullable', 'date'],
-            'due_time' => ['nullable'],
+            'due_time' => ['nullable', 'date_format:H:i'],
         ];
     }
 }
