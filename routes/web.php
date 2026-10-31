@@ -8,7 +8,6 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Todo\TodoController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [AuthController::class, 'index']);
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
 Route::get('/sample', function () {
@@ -17,7 +16,7 @@ Route::get('/sample', function () {
 
 Route::controller(AuthController::class)->name('auth.')->group(function () {
     Route::get('/login', 'index')->name('index');
-    Route::post('/login', 'login')->name('login');
+    Route::post('/login', 'login')->middleware('throttle:5,1')->name('login');
     Route::post('/logout', 'logout')->name('logout')->middleware('auth');
 });
 
@@ -31,8 +30,8 @@ Route::controller(ForgotPasswordController::class)->name('password.')->group(fun
 
 Route::controller(OtpController::class)->name('otp.')->group(function () {
     Route::get('/otp', 'index')->name('index');
-    Route::post('/send', 'send')->name('send');
-    Route::post('/verify', 'verify')->name('verify');
+    Route::post('/send', 'send')->middleware('throttle:3,1')->name('send');
+    Route::post('/verify', 'verify')->middleware('throttle:5,1')->name('verify');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -71,5 +70,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/update', 'update')->name('update');
 
         Route::put('/password', 'password')->name('password');
+
+        Route::put('/two-factor', 'twoFactor')->name('two-factor');
     });
 });

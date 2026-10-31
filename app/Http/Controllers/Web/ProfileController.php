@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -14,43 +15,61 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
+        $user = $request->user();
         $validated = $request->validate([
-            'name' => ['required', 'max:255'],
-            'email' => ['required', 'email'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
         ]);
 
-        $request->user()->update($validated);
+        $emailChanged = $validated['email'] !== $user->email;
 
-        return back()->with(
-            'success',
-            'Profile updated.'
-        );
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
+        }
+
+        return back()->with('success', 'Profile updated.');
     }
 
     public function password(Request $request)
     {
         $validated = $request->validate([
-            'current_password' => [
-                'required',
-                'current_password'
-            ],
-
-            'password' => [
-                'required',
-                'confirmed',
-                'min:8'
-            ],
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', 'min:8'],
         ]);
 
         $request->user()->update([
-            'password' => bcrypt(
-                $validated['password']
-            )
+            'password' => bcrypt($validated['password']),
         ]);
 
-    return back()->with(
-            'success',
-            'Password updated.'
-        );
+        return back()->with('success', 'Password updated.');
+    }
+
+    public function twoFactor(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'two_factor_enabled' => ['required', 'boolean'],
+        ]);
+
+        $user = $request->user();
+
+        if ($request->boolean('two_factor_enabled') && !$user->email_verified_at) {
+            return back()->withErrors([
+                'two_factor_enabled' => 'Verify your email address before enabling two-factor authentication.',
+            ]);
+        }
+
+        $user->update([
+            'two_factor_enabled' => $request->boolean('two_factor_enabled'),
+        ]);
+
+        return back()->with('success', $user->two_factor_enabled
+            ? 'Two-factor authentication enabled.'
+            : 'Two-factor authentication disabled.');
     }
 }
