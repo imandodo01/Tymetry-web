@@ -1,65 +1,49 @@
 @extends('layout.app-plain')
 
-@section('title', 'OTP Verification')
+@section('title', $purpose === 'two_factor' ? 'Two-Factor Authentication' : 'Email Verification')
 
 @push('styles')
-<link rel="stylesheet" href="assets/css/otp.css">
+<link rel="stylesheet" href="{{ asset('assets/css/otp.css') }}">
 @endpush
 
 @section('content')
 <div class="otp-wrapper">
-
     <div class="otp-card">
-
         <div class="otp-header text-center">
-            <h2>OTP VERIFICATION</h2>
-            <p>Enter the verification code sent to your email or WhatsApp</p>
+            <h2>{{ $purpose === 'two_factor' ? 'TWO-FACTOR AUTHENTICATION' : 'EMAIL VERIFICATION' }}</h2>
+            <p>
+                {{ $purpose === 'two_factor'
+                    ? 'Enter the sign-in code sent to your email to finish logging in.'
+                    : 'Verify your email address by entering the code sent to your inbox.' }}
+            </p>
         </div>
 
-        <form>
+        @if (session('status'))
+        <div class="alert alert-dark">{{ session('status') }}</div>
+        @endif
 
-            <div class="otp-input-group mb-4">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
+        @error('code')
+        <div class="alert alert-danger">{{ $message }}</div>
+        @enderror
+
+        <form method="POST" action="{{ route('otp.verify') }}">
+            @csrf
+            <div class="mb-4">
+                <label for="code" class="form-label">Six-digit verification code</label>
+                <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                    pattern="[0-9]{6}" maxlength="6" required autofocus
+                    class="form-control @error('code') is-invalid @enderror" aria-describedby="code-help">
+                <small id="code-help" class="text-muted">The code expires in five minutes.</small>
             </div>
-
             <div class="d-grid mb-3">
-                <button type="submit" class="btn btn-dark btn-verify">
-                    Verify OTP
-                </button>
+                <button type="submit" class="btn btn-dark btn-verify">Verify</button>
             </div>
+        </form>
 
-            <div class="text-center otp-footer">
-                <p>
-                    Didn't receive code?
-                    <a href="#">Resend OTP</a>
-                </p>
-            </div>
-
+        <form method="POST" action="{{ route('otp.send') }}" class="text-center">
+            @csrf
+            <button type="submit" class="btn btn-link">Resend code</button>
         </form>
     </div>
 </div>
 @endsection
-@push('scripts')
-<script>
-    const inputs = document.querySelectorAll('.otp-input');
-
-    inputs.forEach((input, index) => {
-        input.addEventListener('input', () => {
-            if (input.value.length === 1 && index < inputs.length - 1) {
-                inputs[index + 1].focus();
-            }
-        });
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !input.value && index > 0) {
-                inputs[index - 1].focus();
-            }
-        });
-    });
-</script>
-@endpush

@@ -75,7 +75,7 @@
                             Title
                         </th>
                         <th class="text-muted fw-semibold py-3">
-                            Status
+                            Complete
                         </th>
                         <th class="text-muted fw-semibold py-3">
                             Status
@@ -85,6 +85,9 @@
                         </th>
                         <th class="text-muted fw-semibold py-3">
                             Due Status
+                        </th>
+                        <th class="text-muted fw-semibold py-3">
+                            Due Date
                         </th>
                         <th width="120" class="text-muted fw-semibold py-3 text-center">
                             Action
