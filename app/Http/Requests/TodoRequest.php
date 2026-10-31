@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Todo\TodoPriority;
+use App\Enums\Todo\TodoStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TodoRequest extends FormRequest
 {
@@ -25,8 +28,8 @@ class TodoRequest extends FormRequest
         return [
             'title' => ['required', 'max:255'],
             'description' => ['nullable'],
-            'status' => ['required'],
-            'priority' => ['required'],
+            'status' => ['required', Rule::in(array_map(fn (TodoStatus $status) => $status->value, TodoStatus::cases()))],
+            'priority' => ['required', Rule::in(array_map(fn (TodoPriority $priority) => $priority->value, TodoPriority::cases()))],
             'due_date' => ['nullable', 'date'],
             'due_time' => ['nullable', 'date_format:H:i'],
         ];
