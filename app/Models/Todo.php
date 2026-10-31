@@ -68,9 +68,9 @@ class Todo extends Model
         return $query
             ->orderByRaw("CASE
                 WHEN status = 2 THEN 5
-                WHEN due_date < CURDATE()
+                WHEN due_date < CURRENT_DATE
                     THEN 1
-                WHEN due_date = CURDATE()
+                WHEN due_date = CURRENT_DATE
                     THEN 2
                 ELSE 3
             END")
