@@ -1,6 +1,6 @@
 # Testing Guide
 
-Use this guide to verify the current Tymetry-web behavior. The checklist is not evidence that a test has passed.
+Use this guide to verify current Tymetry-web behavior. A checklist is a test plan, not evidence that a test passed.
 
 ## Setup
 
@@ -12,7 +12,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Configure the database in `.env`, then run:
+Configure the database, mail transport, and cache in `.env`. For a local development database, run:
 
 ```bash
 php artisan migrate
@@ -23,63 +23,82 @@ php artisan test
 
 Use a disposable test database for tests that reset or mutate data. Never run destructive test setup against production data.
 
-**Setup note:** `.env.example` currently starts with `wAPP_NAME=Laravel` rather than `APP_NAME=Laravel`. Correct this before relying on the example environment file.
+## Automated test suite
 
-## Automated tests
+Run:
 
-Run `php artisan test`. Record the date, commit SHA, PHP/database environment, command, result, and any blocker. Passing tests only verify assertions that exist.
+```bash
+php artisan test
+npm run build
+```
 
-The current visible feature test is a basic homepage response test; meaningful todo/authentication regression coverage is still needed. PHPUnit is configured to use SQLite in memory, while `Todo::scopeSmartOrder()` uses MySQL's `CURDATE()`; exercise the affected authenticated pages under the configured test database and make the query portable or configure a compatible test database.
+Record the date, commit SHA, PHP/database environment, command, result, and any blocker when reporting a verification run. Passing tests only verify assertions that exist.
+
+The repository's focused feature/unit tests currently cover:
+
+- Authentication verification and two-factor flow behavior.
+- Password-reset rate limits.
+- Todo request and AJAX enum validation.
+- Todo lifecycle, completion timestamp, and activity-log consistency.
+- Bulk action validation and user-ownership boundaries.
+- Due-time create/edit persistence and validation.
+- Profile email uniqueness.
+- Smart ordering under the configured test database.
+- Dashboard due-date behavior.
+- Todo table presentation/accessibility and application-shell navigation.
 
 ## Manual smoke checklist
 
 ### Authentication and profile
-- [ ] Guest can open login; valid credentials sign in; invalid credentials show an error.
-- [ ] Verify login attempts are appropriately rate-limited; the custom login controller currently calls `Auth::attempt()` without visible throttling.
+
+- [ ] Login succeeds with valid credentials and rejects invalid credentials.
+- [ ] Repeated login attempts are throttled.
 - [ ] Logout invalidates the session.
-- [ ] Password reset works with a valid, expired, or invalid token.
-- [ ] Confirm OTP is either implemented end-to-end or clearly treated as unfinished: the current controller's `send()` and `verify()` methods are empty, and the view form has no action or named OTP fields.
+- [ ] Password reset works with a valid token and rejects invalid/expired tokens.
+- [ ] Email verification and optional two-factor flow can send and verify codes using the configured mail transport.
+- [ ] OTP resend and verification attempt limits behave as expected.
 - [ ] Profile and password updates persist correctly.
-- [ ] Updating a profile email to an address already used by another account produces a validation message rather than a database error.
+- [ ] A duplicate profile email produces a validation message.
+- [ ] Two-factor preference cannot be enabled before email verification.
 
 ### Todo lifecycle
-- [ ] Create and edit todos; verify required fields and invalid status/priority values are rejected.
+
+- [ ] Create and edit todos; required fields and invalid status/priority values are rejected.
+- [ ] Due-time value persists after create/edit and remains informational metadata only.
 - [ ] Filter by title, status, and priority.
-- [ ] Verify the visible table controls match the available endpoints. The controller generates `priority_action` and `due_action`, but the current DataTables columns do not render either control.
-- [ ] If inline priority/due-date controls are intended, align the JavaScript HTTP verbs with the routes: both routes are registered as `PATCH`, while the JavaScript sends `POST`.
+- [ ] Inline status, priority, and due-date controls update the selected todo.
 - [ ] Quick-complete and bulk mark-done keep status and completion timestamps consistent.
 - [ ] Smart ordering and due-date labels behave correctly for overdue, today, tomorrow, upcoming, and no-date tasks.
-- [ ] Archive, restore, and bulk actions work, including empty or malformed selections.
+- [ ] Archive, restore, and bulk actions work, including empty/malformed selections.
+- [ ] A user cannot read or mutate another user's todos, including through bulk endpoints.
 - [ ] Activity logs reflect the actions the product intends to record.
 
-### Ownership and dashboard
-- [ ] User A cannot read or mutate User B's todos, including through bulk endpoints.
+### Dashboard and application shell
+
 - [ ] Guests cannot access dashboard, todo, or profile routes.
 - [ ] Dashboard counts, due-date lists, and activity are scoped to the signed-in user.
-- [ ] Confirm whether the “Due Today” card should include completed tasks; the current query does, while “Today Tasks” excludes completed tasks.
-- [ ] Empty states render correctly; no new browser-console or server-log errors appear.
+- [ ] Completed todos do not appear in open due-date lists.
+- [ ] Empty, loading, and error states render correctly.
+- [ ] Success feedback appears once for create/update/archive/restore/profile flows.
 
-## Source-review findings to verify/fix
+### Responsive and accessibility smoke checks
 
-These were identified by reading the current source, not by executing the app:
+- [ ] At desktop width (for example, 1280px), sidebar, topbar, cards, and tables remain aligned.
+- [ ] At tablet width (for example, 768px), navigation changes to the compact horizontal layout without covering the content.
+- [ ] At mobile width (for example, 390px), topbar actions remain usable and content does not create unintended page-level horizontal overflow.
+- [ ] Sidebar navigation can be horizontally scrolled to reach every destination on narrow screens.
+- [ ] Todo and archive tables can be horizontally scrolled within their responsive containers when needed.
+- [ ] Keyboard focus remains visible; skip link, navigation, form fields, and archive checkboxes are operable.
+- [ ] Validation errors are associated with the relevant fields and remain understandable when navigating by keyboard.
 
-1. **High priority — validate enum values.** `TodoRequest`, `updateStatus`, and `updatePriority` require values but do not restrict them to the supported status/priority enum values. Invalid values can fail later when Eloquent casts are read.
-2. **High priority — keep completion metadata consistent.** `toggleComplete` and `bulkDone` update status without maintaining `completed_at`; bulk completion and bulk archive also bypass activity logging. Define the expected behavior and test all completion paths.
-3. **Medium priority — inline priority/due-date controls are not rendered.** The controller returns `priority_action` and `due_action`, but the DataTables column configuration renders neither. The JavaScript listeners therefore have no matching controls in the current table.
-4. **Medium priority — inline priority/due-date HTTP methods disagree.** The routes use `PATCH` for both endpoints, but the JavaScript sends `POST`. These requests would be rejected if the controls were rendered.
-5. **Medium priority — due time is currently incomplete.** The migration has `due_time` and `TodoRequest` validates it, but the model's fillable list and the shared form do not expose/persist it. Either implement it end-to-end or remove the unused field/validation.
-6. **Medium priority — profile email uniqueness is not validated.** The users table has a unique email constraint, but `ProfileController::update()` only validates the email format. A duplicate address can surface as a database exception instead of a validation error.
-7. **Medium priority — login throttling is not visible.** The custom login action has no explicit rate-limiting middleware or attempt limiter in the inspected route/controller.
-8. **Medium priority — SQLite test compatibility needs checking.** PHPUnit uses in-memory SQLite, but `Todo::scopeSmartOrder()` embeds `CURDATE()`, which is MySQL-specific. Authenticated todo/dashboard tests may fail under SQLite.
-9. **Medium priority — OTP flow is unfinished.** The OTP controller methods are empty; the view's form has no action and the six inputs have no `name` attributes. Treat it as a placeholder unless OTP is a required feature.
-10. **Medium priority — bulk request validation is incomplete.** `bulkDone` and `bulkArchive` pass `$request->ids` directly into `whereIn()` without validating that it is an array of permitted IDs. Ownership scoping exists, but malformed input should be rejected predictably.
-11. **Medium priority — due-date form markup needs correction.** The shared Blade form has an extra quote after the date input's `value` attribute and malformed-looking invalid-feedback markup. Verify rendered HTML and validation errors, then correct it.
-12. **Medium priority — AJAX error handlers use the wrong option name.** In `todo.js`, several `$.ajax({ ... })` calls specify `fail`; jQuery's AJAX options use `error`. A chained `.fail()` is valid, but the option is not.
-13. **Low priority — environment example typo.** `.env.example` uses `wAPP_NAME` instead of `APP_NAME`.
-14. **Low priority — list UI leftovers.** Both status-related table headers are labelled “Status”; bulk-done JavaScript shows archive wording; bulk archive/restore flows have duplicate success-toast attempts; keyboard shortcuts point to old element IDs that are absent from the current view.
-15. **Low priority — route and view cleanup.** The root GET route is declared twice; the edit page heading still says “Create Todo”; password-recovery views also use “Login” as their document title; the OTP stylesheet uses a relative path rather than Laravel's `asset()` helper.
-16. **Low priority — stale modal handlers.** The old modal-based create/edit handlers reference controls that are currently commented out or absent.
+## Verification checkpoint (2026-11-17)
 
-## Suggested regression tests
+- PR #26 (feedback consistency): GitHub Actions CI completed successfully; the maintainer reported the changed behavior works as expected.
+- PR #27 (form/accessibility consistency): GitHub Actions CI completed successfully; the maintainer reported the changed behavior works as expected.
+- The main branch checkpoint is `b3d906eb1a9990dd39b23936b832e05f9c207c03`.
+- Responsive source inspection found the expected narrow-screen layout and responsive table wrappers. A viewport-specific browser run is not recorded in this checkpoint.
+- No claim is made here that the assistant executed the local PHP test suite or a real browser session.
 
-Prioritize enum validation, user ownership for single and bulk actions, archive/restore, completion timestamp consistency, route-method compatibility, due-date updates, unique profile email validation, login throttling, and dashboard totals. Re-run the automated suite after each fix and record actual results here or in the PR.
+## Safe test-data handling
+
+Use a disposable local/test database for tests that reset or mutate records. Confirm the active connection before running migrations or test commands. Do not use production credentials or production data for local verification.
