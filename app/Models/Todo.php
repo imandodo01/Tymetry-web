@@ -15,6 +15,18 @@ class Todo extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saving(function (Todo $todo): void {
+            if ($todo->status === TodoStatus::Done) {
+                $todo->completed_at ??= now();
+                return;
+            }
+
+            $todo->completed_at = null;
+        });
+    }
+
     protected $casts = [
         'status' => TodoStatus::class,
         'priority' => TodoPriority::class,

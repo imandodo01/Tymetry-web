@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\TodoRequest;
 use App\Models\ActivityLog;
 use App\Models\Todo;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -197,7 +196,6 @@ class TodoController extends Controller
 
         $todo->update([
             'status' => $validated['status'],
-            'completed_at' => TodoStatus::Done->value == $validated['status'] ? Carbon::now()->format('Y-m-d H:i:s') : NULL
         ]);
 
         ActivityLog::add(
@@ -256,7 +254,6 @@ class TodoController extends Controller
             foreach ($todos as $todo) {
                 $todo->update([
                     'status' => TodoStatus::Done,
-                    'completed_at' => $todo->completed_at ?? now(),
                 ]);
 
                 ActivityLog::add('status_updated', $todo, 'Marked todo as done in bulk');
@@ -322,7 +319,6 @@ class TodoController extends Controller
 
         $isCompleting = $todo->status !== TodoStatus::Done;
         $todo->status = $isCompleting ? TodoStatus::Done : TodoStatus::Pending;
-        $todo->completed_at = $isCompleting ? ($todo->completed_at ?? now()) : null;
         $todo->save();
 
         ActivityLog::add('status_updated', $todo, 'Updated completion status');
@@ -365,9 +361,14 @@ class TodoController extends Controller
         ]);
 
         $todo->update([
-            'due_date' =>
-            $validated['due_date']
+            'due_date' => $validated['due_date'],
         ]);
+
+        ActivityLog::add(
+            'due_date_updated',
+            $todo,
+            'Updated todo due date'
+        );
 
         return response()->json([
             'success' => true
