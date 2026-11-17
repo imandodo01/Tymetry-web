@@ -13,10 +13,6 @@
         </small>
     </div>
 
-    @if (session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
     @if ($errors->has('current_password'))
     <div class="alert alert-danger">{{ $errors->first('current_password') }}</div>
     @endif
