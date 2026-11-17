@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Web\Auth\AuthController;
-use App\Http\Controllers\Web\Auth\OtpController;
-use App\Http\Controllers\Web\Auth\ForgotPasswordController;
-use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\ProfileController;
-use App\Http\Controllers\Web\Todo\TodoController;
-use Illuminate\Support\Facades\Route;
+use App\\Http\\Controllers\\Web\\Auth\\AuthController;
+use App\\Http\\Controllers\\Web\\Auth\\OtpController;
+use App\\Http\\Controllers\\Web\\Auth\\ForgotPasswordController;
+use App\\Http\\Controllers\\Web\\DashboardController;
+use App\\Http\\Controllers\\Web\\ProfileController;
+use App\\Http\\Controllers\\Web\\Todo\\TodoController;
+use Illuminate\\Support\\Facades\\Route;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
@@ -22,10 +22,10 @@ Route::controller(AuthController::class)->name('auth.')->group(function () {
 
 Route::controller(ForgotPasswordController::class)->name('password.')->group(function () {
     Route::get('/forgot-password', 'forgotPassword')->name('index');
-    Route::post('/forgot-password', 'sendResetLink')->name('resetLink');
+    Route::post('/forgot-password', 'sendResetLink')->middleware('throttle:5,1')->name('resetLink');
 
     Route::get('/reset-password/{token}', 'resetPassword')->name('reset');
-    Route::post('/reset-password', 'updatePassword')->name('update');
+    Route::post('/reset-password', 'updatePassword')->middleware('throttle:5,1')->name('update');
 });
 
 Route::controller(OtpController::class)->name('otp.')->group(function () {
