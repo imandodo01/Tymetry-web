@@ -16,19 +16,31 @@ function toggleBulkButtons() {
 
 $(function () {
     toggleBulkButtons();
+    // Keep DataTables failures in the page-level error state instead of showing its default alert.
+    $.fn.dataTable.ext.errMode = 'none';
+
     table = $('#todoTable').DataTable({
         processing: true,
         serverSide: true,
         searching: false,
         ajax: {
             url: "todos",
+            beforeSend: function () {
+                $('#todoTableLoading').removeClass('d-none');
+                $('#todoTableError').addClass('d-none');
+            },
+            complete: function () {
+                $('#todoTableLoading').addClass('d-none');
+            },
             data: function (d) {
                 d.search_title = $('#searchTitle').val();
                 d.status = $('#filterStatus').val();
                 d.priority = $('#filterPriority').val();
             },
             error: function (xhr) {
-                ajaxFailHandler(xhr);
+                ajaxFailHandler(xhr, { notify: false });
+                $('#todoTableLoading').addClass('d-none');
+                $('#todoTableError').removeClass('d-none');
             }
         },
         columns: [
@@ -66,6 +78,10 @@ $(function () {
                         </small>
                     </div>`
         }
+    });
+
+    $('#retryTodoTable').on('click', function () {
+        table.ajax.reload(null, false);
     });
 
     table.on('preXhr', function () {

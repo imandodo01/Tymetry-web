@@ -74,6 +74,18 @@
                 </button>
                 <small class="text-muted ms-auto" id="selectedTodoCount" aria-live="polite">0 selected</small>
             </div>
+            <div id="todoTableLoading" class="todo-table-loading d-none" role="status" aria-live="polite">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading tasks...</span>
+            </div>
+            <div id="todoTableError" class="todo-table-error d-none" role="alert">
+                <div class="fw-semibold mb-1">Unable to load tasks</div>
+                <p class="text-muted mb-3">Check your connection and try again. Your current filters will be kept.</p>
+                <button type="button" class="btn btn-outline-dark btn-sm" id="retryTodoTable">
+                    <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>
+                    Try again
+                </button>
+            </div>
             <table class="table align-middle mb-0" id="todoTable">
                 <thead>
                     <tr class="border-bottom">

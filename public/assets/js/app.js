@@ -6,7 +6,14 @@ window.showToast = function (message = 'Success') {
     toast.show();
 }
 
-$(document).ajaxError(function (event, xhr) {
+window.ajaxFailHandler = function (xhr, options = {}) {
+    // Mark the request so the global handler does not show a duplicate toast.
+    xhr._appErrorHandled = true;
+
+    if (options.notify === false) {
+        return;
+    }
+
     if (xhr.status === 422) {
         showToast('Validation failed');
         return;
@@ -23,6 +30,14 @@ $(document).ajaxError(function (event, xhr) {
     }
 
     showToast('Something went wrong');
+};
+
+$(document).ajaxError(function (event, xhr) {
+    if (xhr._appErrorHandled) {
+        return;
+    }
+
+    ajaxFailHandler(xhr);
 });
 
 window.confirmAction = function (message, callback) {
