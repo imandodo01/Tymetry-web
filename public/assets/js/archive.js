@@ -33,9 +33,7 @@ $('#bulkRestore').click(function () {
         }, function () {
             showToast('Todos restored');
             location.reload();
-    }).done(function () {
-            showToast('Todos restored');
-        }).always(function () {
+    }).always(function () {
             buttonLoading(btn, false);
         }).fail(function (xhr) {
             ajaxFailHandler(xhr);

@@ -7,14 +7,6 @@
 @endpush
 
 @section('content')
-
-@if (session('success'))
-<div class="alert alert-light alert-dismissible fade show shadow-sm border" role="alert">
-    {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-@endif
-
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 py-3 px-4">
         <div class="d-flex justify-content-between align-items-center">
