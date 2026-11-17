@@ -90,10 +90,11 @@ class TodoTablePresentationTest extends TestCase
         $response->assertOk()
             ->assertSee('Completion')
             ->assertSee('Change Status')
-            ->assertSee('aria-label="Search tasks by title"', false)
-            ->assertSee('aria-label="Filter tasks by status"', false)
-            ->assertSee('aria-label="Filter tasks by priority"', false)
-            ->assertSee('aria-label="Select all tasks on this page"', false);
+            ->assertSee('<label class="visually-hidden" for="searchTitle">Search tasks by title</label>', false)
+            ->assertSee('<label class="visually-hidden" for="filterStatus">Filter tasks by status</label>', false)
+            ->assertSee('<label class="visually-hidden" for="filterPriority">Filter tasks by priority</label>', false)
+            ->assertSee('aria-label="Select all tasks on this page"', false)
+            ->assertSee('<th scope="col"', false);
     }
 
 }
