@@ -59,6 +59,11 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="resetTodoFilters">
+                        Clear filters
+                    </button>
+                </div>
             </div>
             <div class="d-flex gap-2 mb-3">
                 <button class="btn btn-outline-dark btn-sm" id="bulkDone">

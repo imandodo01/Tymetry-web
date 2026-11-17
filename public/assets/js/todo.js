@@ -1,5 +1,5 @@
-
 var table;
+var searchDebounceTimer;
 
 function toggleBulkButtons() {
     let hasSelected = $('.todo-checkbox:checked').length > 0;
@@ -67,7 +67,6 @@ $(function () {
     });
 });
 
-
 $(document).on('change', '.todo-status', function () {
     let id = $(this).data('id');
     $.ajax({
@@ -87,11 +86,24 @@ $(document).on('change', '.todo-status', function () {
     });
 });
 
-$('#searchTitle').keyup(function () {
+function scheduleTodoSearch() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(function () {
+        table.draw();
+    }, 300);
+}
+
+$('#searchTitle').on('input search', scheduleTodoSearch);
+
+$('#filterStatus, #filterPriority').on('change', function () {
     table.draw();
 });
 
-$('#filterStatus, #filterPriority').change(function () {
+$('#resetTodoFilters').on('click', function () {
+    clearTimeout(searchDebounceTimer);
+    $('#searchTitle').val('');
+    $('#filterStatus').val('');
+    $('#filterPriority').val('');
     table.draw();
 });
 
@@ -218,4 +230,3 @@ $(document).on('change', '.inlineDueDate', function () {
         }
     });
 });
-
