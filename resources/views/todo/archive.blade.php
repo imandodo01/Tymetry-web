@@ -33,7 +33,7 @@
                 <thead>
                     <tr>
                         <th width="40" class="px-4 py-3">
-                            <input type="checkbox" id="checkAll" onclick="event.stopPropagation();">
+                            <input type="checkbox" id="checkAll" aria-label="Select all archived todos" title="Select all archived todos" onclick="event.stopPropagation();">
                         </th>
                         <th class="px-4 py-3">
                             Title
@@ -56,7 +56,7 @@
                     @forelse ($todos as $todo)
                     <tr>
                         <td class="px-4 py-3">
-                            <input type="checkbox" class="todo-checkbox" value="{{ $todo->id }}">
+                            <input type="checkbox" class="todo-checkbox" value="{{ $todo->id }}" aria-label="Select archived todo: {{ $todo->title }}">
                         </td>
                         <td class="px-4 py-3">
                             <div class="fw-semibold">
