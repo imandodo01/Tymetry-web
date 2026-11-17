@@ -81,7 +81,9 @@ class OtpController extends Controller
             }
         }
 
-        Auth::login($user, $request->session()->boolean('pending_auth_remember'));
+        $remember = (bool) $request->session()->get('pending_auth_remember', false);
+
+        Auth::login($user, $remember);
         $request->session()->forget(['pending_auth_user_id', 'pending_auth_purpose', 'pending_auth_remember']);
         $request->session()->regenerate();
 
