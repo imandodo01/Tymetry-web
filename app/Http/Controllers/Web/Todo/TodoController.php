@@ -33,10 +33,7 @@ class TodoController extends Controller
 
             return DataTables::of($data)
                 ->addColumn('status_badge', function ($row) {
-                    return '<button class="btn btn-sm toggleCompleteBtn ' . ($row->status == TodoStatus::Done ? 'btn-dark' : 'btn-outline-dark') . '"
-                            data-id="' . $row->id . '">
-                        <i class="bi bi-check2 me-2"></i>
-                    </button>';
+                    return '<span class="badge ' . $row->status->badge() . '">' . $row->status->label() . '</span>';
                 })
                 ->addColumn('checkbox', function ($row) {
                     return '<input type="checkbox" class="todo-checkbox" value="' . $row->id . '">';
@@ -46,6 +43,10 @@ class TodoController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '<div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm toggleCompleteBtn ' . ($row->status == TodoStatus::Done ? 'btn-dark' : 'btn-outline-dark') . '"
+                                data-id="' . $row->id . '">
+                            <i class="bi bi-check2 me-2"></i>
+                        </button>
                         <a href="' . route('todo.edit', $row->id) . '"
                             class="btn btn-sm btn-outline-dark">
                             <i class="bi bi-pencil-square me-2"></i>
