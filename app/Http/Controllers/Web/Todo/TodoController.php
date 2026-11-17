@@ -106,7 +106,7 @@ class TodoController extends Controller
                     </div>';
                 })->addColumn('due_action', function ($row) {
                     return '<input type="date" class="form-control form-control-sm inlineDueDate" value="' . $row->due_date . '" data-id="' . $row->id . '">';
-                })->rawColumns(['status_badge', 'status_action', 'priority_badge', 'action', 'checkbox', 'due_status', 'due_action'])->make(true);
+                })->rawColumns(['status_badge', 'status_action', 'priority_action', 'priority_badge', 'action', 'checkbox', 'due_status', 'due_action'])->make(true);
         }
 
         $statusOption = TodoStatus::cases();

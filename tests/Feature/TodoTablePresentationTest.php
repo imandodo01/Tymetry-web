@@ -33,4 +33,25 @@ class TodoTablePresentationTest extends TestCase
         );
         $this->assertStringContainsString('toggleCompleteBtn', $rows[0]['action']);
     }
+    public function test_priority_action_is_returned_as_renderable_html(): void
+    {
+        $user = User::factory()->create();
+        Todo::factory()->for($user)->create([
+            'priority' => 2,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('todo.index'));
+
+        $response->assertOk();
+
+        $priorityAction = $response->json('data.0.priority_action');
+
+        $this->assertStringContainsString('<select', $priorityAction);
+        $this->assertStringContainsString('class="form-select form-select-sm inlinePriority"', $priorityAction);
+        $this->assertStringContainsString('<option value="2" selected>', $priorityAction);
+        $this->assertStringNotContainsString('&lt;select', $priorityAction);
+    }
+
 }
