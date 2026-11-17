@@ -54,4 +54,47 @@ class TodoTablePresentationTest extends TestCase
         $this->assertStringNotContainsString('&lt;select', $priorityAction);
     }
 
+
+    public function test_task_table_controls_have_accessible_names(): void
+    {
+        $user = User::factory()->create();
+        Todo::factory()->for($user)->create([
+            'title' => 'Prepare weekly report',
+            'status' => 0,
+            'priority' => 2,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-Requested-With', 'XMLHttpRequest')
+            ->get(route('todo.index'));
+
+        $response->assertOk();
+
+        $row = $response->json('data.0');
+
+        $this->assertStringContainsString('aria-label="Select task: Prepare weekly report"', $row['checkbox']);
+        $this->assertStringContainsString('aria-label="Change status for task: Prepare weekly report"', $row['status_action']);
+        $this->assertStringContainsString('aria-label="Change priority for task: Prepare weekly report"', $row['priority_action']);
+        $this->assertStringContainsString('aria-label="Change due date for task: Prepare weekly report"', $row['due_action']);
+        $this->assertStringContainsString('aria-label="Mark task complete: Prepare weekly report"', $row['action']);
+        $this->assertStringContainsString('aria-label="Edit task: Prepare weekly report"', $row['action']);
+        $this->assertStringContainsString('aria-label="Archive task: Prepare weekly report"', $row['action']);
+    }
+
+    public function test_task_table_headers_describe_their_controls(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('todo.index'));
+
+        $response->assertOk()
+            ->assertSee('Completion')
+            ->assertSee('Change Status')
+            ->assertSee('<label class="visually-hidden" for="searchTitle">Search tasks by title</label>', false)
+            ->assertSee('<label class="visually-hidden" for="filterStatus">Filter tasks by status</label>', false)
+            ->assertSee('<label class="visually-hidden" for="filterPriority">Filter tasks by priority</label>', false)
+            ->assertSee('aria-label="Select all tasks on this page"', false)
+            ->assertSee('<th scope="col"', false);
+    }
+
 }

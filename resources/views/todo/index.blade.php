@@ -36,11 +36,13 @@
 
     <div class="card-body p-4">
         <div class="table-responsive">
-            <div class="row mb-4">
+            <div class="row g-3 mb-4" role="group" aria-label="Task filters">
                 <div class="col-md-4">
-                    <input type="text" id="searchTitle" class="form-control" placeholder="Search title...">
+                    <label class="visually-hidden" for="searchTitle">Search tasks by title</label>
+                    <input type="search" id="searchTitle" class="form-control" placeholder="Search title..." autocomplete="off">
                 </div>
                 <div class="col-md-3">
+                    <label class="visually-hidden" for="filterStatus">Filter tasks by status</label>
                     <select id="filterStatus" class="form-select">
                         <option value="">All Status</option>
                         @foreach ($statusOption as $status)
@@ -49,6 +51,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="visually-hidden" for="filterPriority">Filter tasks by priority</label>
                     <select id="filterPriority" class="form-select">
                         <option value=""> All Priority</option>
                         @foreach ($priorityOption as $priority)
@@ -68,28 +71,28 @@
             <table class="table align-middle mb-0" id="todoTable">
                 <thead>
                     <tr class="border-bottom">
-                        <th width="40">
-                            <input type="checkbox" id="checkAll" onclick="event.stopPropagation();">
+                        <th scope="col" width="40">
+                            <input type="checkbox" id="checkAll" aria-label="Select all tasks on this page" onclick="event.stopPropagation();">
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Title
                         </th>
-                        <th class="text-muted fw-semibold py-3">
-                            Complete
+                        <th scope="col" class="text-muted fw-semibold py-3">
+                            Completion
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Priority
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Due Status
                         </th>
-                        <th class="text-muted fw-semibold py-3">
-                            Status Action
+                        <th scope="col" class="text-muted fw-semibold py-3">
+                            Change Status
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Due Date
                         </th>
-                        <th width="120" class="text-muted fw-semibold py-3 text-center">
+                        <th scope="col" width="120" class="text-muted fw-semibold py-3 text-center">
                             Action
                         </th>
                     </tr>
