@@ -68,6 +68,13 @@ $(function () {
         }
     });
 
+    table.on('preXhr', function () {
+        // Clear the previous page's selection as soon as a new page/filter request starts.
+        $('.todo-checkbox').prop('checked', false);
+        $('#checkAll').prop({ checked: false, indeterminate: false });
+        toggleBulkButtons();
+    });
+
     table.on('draw', function () {
         // Selection is intentionally limited to the currently rendered page.
         $('#checkAll').prop({ checked: false, indeterminate: false });
