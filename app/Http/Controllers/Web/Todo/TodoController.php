@@ -36,20 +36,22 @@ class TodoController extends Controller
                     return '<span class="badge ' . $row->status->badge() . '">' . $row->status->label() . '</span>';
                 })
                 ->addColumn('checkbox', function ($row) {
-                    return '<input type="checkbox" class="todo-checkbox" value="' . $row->id . '">';
+                    return '<input type="checkbox" class="todo-checkbox" value="' . $row->id . '" aria-label="Select task: ' . e($row->title) . '">';
                 })
                 ->addColumn('priority_badge', function ($row) {
                     return '<span class="badge ' . $row->priority->badge() . '">' . $row->priority->label() . '</span>';
                 })
                 ->addColumn('action', function ($row) {
                     return '<div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm toggleCompleteBtn ' . ($row->status == TodoStatus::Done ? 'btn-dark' : 'btn-outline-dark') . '"
-                                data-id="' . $row->id . '">
+                        <button type="button" class="btn btn-sm toggleCompleteBtn ' . ($row->status == TodoStatus::Done ? 'btn-dark' : 'btn-outline-dark') . '"
+                                data-id="' . $row->id . '"
+                                aria-label="' . ($row->status == TodoStatus::Done ? 'Reopen task: ' : 'Mark task complete: ') . e($row->title) . '"
+                                title="' . ($row->status == TodoStatus::Done ? 'Reopen task' : 'Mark complete') . '">
                             <i class="bi bi-check2 me-2"></i>
                         </button>
                         <a href="' . route('todo.edit', $row->id) . '"
-                            class="btn btn-sm btn-outline-dark">
-                            <i class="bi bi-pencil-square me-2"></i>
+                            class="btn btn-sm btn-outline-dark" aria-label="Edit task: ' . e($row->title) . '" title="Edit task">
+                            <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>
                         </a>
                         <form method="POST"
                             action="' . route('todo.destroy', $row->id) . '"
@@ -57,8 +59,8 @@ class TodoController extends Controller
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit"
-                                class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-archive me-2"></i>
+                                class="btn btn-sm btn-outline-secondary" aria-label="Archive task: ' . e($row->title) . '" title="Archive task">
+                                <i class="bi bi-archive me-2" aria-hidden="true"></i>
                             </button>
                         </form>
                     </div>';
@@ -80,7 +82,7 @@ class TodoController extends Controller
                     //     </div>
                     // ';
                 })->addColumn('status_action', function ($row) {
-                    $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '">';
+                    $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '" aria-label="Change status for task: ' . e($row->title) . '">';
                     foreach (TodoStatus::cases() as $status) {
                         $selected = $row->status->value == $status->value ? ' selected' : '';
                         $html .= '<option value="' . $status->value . '"' . $selected . '>' . $status->label() . '</option>';
@@ -88,7 +90,7 @@ class TodoController extends Controller
                     $html .= '</select>';
                     return $html;
                 })->addColumn('priority_action', function ($row) {
-                    $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $row->id . '">';
+                    $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $row->id . '" aria-label="Change priority for task: ' . e($row->title) . '">';
                     foreach (TodoPriority::cases() as $priority) {
                         $selected = $row->priority->value == $priority->value ? ' selected' : '';
                         $html .= '<option value="' . $priority->value . '"' . $selected . '>' . $priority->label() . '</option>';
@@ -105,7 +107,7 @@ class TodoController extends Controller
                         </small>
                     </div>';
                 })->addColumn('due_action', function ($row) {
-                    return '<input type="date" class="form-control form-control-sm inlineDueDate" value="' . $row->due_date . '" data-id="' . $row->id . '">';
+                    return '<input type="date" class="form-control form-control-sm inlineDueDate" value="' . $row->due_date . '" data-id="' . $row->id . '" aria-label="Change due date for task: ' . e($row->title) . '">';
                 })->rawColumns(['status_badge', 'status_action', 'priority_action', 'priority_badge', 'action', 'checkbox', 'due_status', 'due_action'])->make(true);
         }
 
