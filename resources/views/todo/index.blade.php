@@ -78,13 +78,13 @@
                             Complete
                         </th>
                         <th class="text-muted fw-semibold py-3">
-                            Status
-                        </th>
-                        <th class="text-muted fw-semibold py-3">
                             Priority
                         </th>
                         <th class="text-muted fw-semibold py-3">
                             Due Status
+                        </th>
+                        <th class="text-muted fw-semibold py-3">
+                            Status Action
                         </th>
                         <th class="text-muted fw-semibold py-3">
                             Due Date
