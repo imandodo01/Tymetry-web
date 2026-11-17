@@ -65,19 +65,20 @@
                     </button>
                 </div>
             </div>
-            <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-outline-dark btn-sm" id="bulkDone">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="Bulk task actions">
+                <button type="button" class="btn btn-outline-dark btn-sm" id="bulkDone" disabled>
                     Mark Done
                 </button>
-                <button class="btn btn-outline-dark btn-sm" id="bulkArchive">
+                <button type="button" class="btn btn-outline-dark btn-sm" id="bulkArchive" disabled>
                     Archive
                 </button>
+                <small class="text-muted ms-auto" id="selectedTodoCount" aria-live="polite">0 selected</small>
             </div>
             <table class="table align-middle mb-0" id="todoTable">
                 <thead>
                     <tr class="border-bottom">
                         <th scope="col" width="40">
-                            <input type="checkbox" id="checkAll" aria-label="Select all tasks on this page" onclick="event.stopPropagation();">
+                            <input type="checkbox" id="checkAll" aria-label="Select all tasks on this page" title="Select all tasks on this page">
                         </th>
                         <th scope="col" class="text-muted fw-semibold py-3">
                             Title
