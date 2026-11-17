@@ -82,7 +82,7 @@ class TodoController extends Controller
                 })->addColumn('status_action', function ($row) {
                     $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '">';
                     foreach (TodoStatus::cases() as $status) {
-                        $selected = $row->status->value == $status->value ? 'selected' : '';
+                        $selected = $row->status->value == $status->value ? ' selected' : '';
                         $html .= '<option value="' . $status->value . '"' . $selected . '>' . $status->label() . '</option>';
                     }
                     $html .= '</select>';
@@ -90,7 +90,7 @@ class TodoController extends Controller
                 })->addColumn('priority_action', function ($row) {
                     $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $row->id . '">';
                     foreach (TodoPriority::cases() as $priority) {
-                        $selected = $row->priority->value == $priority->value ? 'selected' : '';
+                        $selected = $row->priority->value == $priority->value ? ' selected' : '';
                         $html .= '<option value="' . $priority->value . '"' . $selected . '>' . $priority->label() . '</option>';
                     }
                     $html .= '</select>';
