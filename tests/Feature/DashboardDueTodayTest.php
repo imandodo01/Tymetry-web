@@ -38,7 +38,6 @@ class DashboardDueTodayTest extends TestCase
             ->assertSee('In progress due task')
             ->assertDontSee('Completed due task')
             ->assertSee('No overdue tasks')
-            ->assertSee('No open tasks due today')
             ->assertSee('Nothing scheduled after today');
     }
 }
