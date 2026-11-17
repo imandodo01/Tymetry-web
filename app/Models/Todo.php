@@ -7,6 +7,7 @@ use App\Enums\Todo\TodoPriority;
 use App\Enums\Todo\TodoStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Todo extends Model
@@ -28,6 +29,11 @@ class Todo extends Model
         'due_time',
         'completed_at',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function activityLogs()
     {
