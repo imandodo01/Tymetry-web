@@ -82,7 +82,7 @@ class TodoController extends Controller
                 })->addColumn('status_action', function ($row) {
                     $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '">';
                     foreach (TodoStatus::cases() as $status) {
-                        $selected = $row->status->value == $status->value ? 'selected' : '';
+                        $selected = $row->status->value == $status->value ? ' selected' : '';
                         $html .= '<option value="' . $status->value . '"' . $selected . '>' . $status->label() . '</option>';
                     }
                     $html .= '</select>';
@@ -90,7 +90,7 @@ class TodoController extends Controller
                 })->addColumn('priority_action', function ($row) {
                     $html = '<select class="form-select form-select-sm inlinePriority" data-id="' . $row->id . '">';
                     foreach (TodoPriority::cases() as $priority) {
-                        $selected = $row->priority->value == $priority->value ? 'selected' : '';
+                        $selected = $row->priority->value == $priority->value ? ' selected' : '';
                         $html .= '<option value="' . $priority->value . '"' . $selected . '>' . $priority->label() . '</option>';
                     }
                     $html .= '</select>';
@@ -106,7 +106,7 @@ class TodoController extends Controller
                     </div>';
                 })->addColumn('due_action', function ($row) {
                     return '<input type="date" class="form-control form-control-sm inlineDueDate" value="' . $row->due_date . '" data-id="' . $row->id . '">';
-                })->rawColumns(['status_badge', 'status_action', 'priority_badge', 'action', 'checkbox', 'due_status', 'due_action'])->make(true);
+                })->rawColumns(['status_badge', 'status_action', 'priority_action', 'priority_badge', 'action', 'checkbox', 'due_status', 'due_action'])->make(true);
         }
 
         $statusOption = TodoStatus::cases();

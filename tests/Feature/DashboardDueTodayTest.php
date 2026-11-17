@@ -13,7 +13,7 @@ class DashboardDueTodayTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_due_today_tasks_are_displayed_separately_by_status(): void
+    public function test_dashboard_prioritizes_open_tasks_and_avoids_repeating_completed_tasks(): void
     {
         $user = User::factory()->create();
 
@@ -33,12 +33,11 @@ class DashboardDueTodayTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard.index'))
             ->assertOk()
-            ->assertSee('Due Today')
-            ->assertSee('Pending')
-            ->assertSee('In Progress')
-            ->assertSee('Done')
+            ->assertSeeInOrder(['Overdue', 'Due Today', 'Upcoming', 'Recent Activity', 'Task Status'])
             ->assertSee('Pending due task')
             ->assertSee('In progress due task')
-            ->assertSee('Completed due task');
+            ->assertDontSee('Completed due task')
+            ->assertSee('No overdue tasks')
+            ->assertSee('Nothing scheduled after today');
     }
 }

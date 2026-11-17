@@ -1,18 +1,29 @@
-<!-- NAVBAR -->
-<nav class="topbar navbar navbar-expand-lg">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">@yield('title')</span>
+<nav class="topbar navbar" aria-label="Top bar">
+    <div class="topbar-heading">
+        <span class="topbar-eyebrow">WORKSPACE</span>
+        <h1 class="topbar-title">@yield('title', 'Dashboard')</h1>
+    </div>
 
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <span class="small text-muted">{{ auth()->user()->name }}</span>
+    <div class="topbar-actions">
+        <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm topbar-create">
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+            <span>New task</span>
+        </a>
 
-            <form method="POST" action="{{ url('/logout') }}">
-                @csrf
-
-                <button type="submit" class="btn btn-outline-dark btn-sm px-3">
-                    Logout
-                </button>
-            </form>
+        <div class="topbar-user" aria-label="Signed in as {{ auth()->user()->name }}">
+            <span class="topbar-avatar" aria-hidden="true">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+            <span class="topbar-user-copy">
+                <strong>{{ auth()->user()->name }}</strong>
+                <small>Personal account</small>
+            </span>
         </div>
+
+        <form method="POST" action="{{ route('auth.logout') }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary btn-sm topbar-logout">
+                <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                <span>Log out</span>
+            </button>
+        </form>
     </div>
 </nav>
