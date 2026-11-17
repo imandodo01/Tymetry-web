@@ -2,10 +2,16 @@ var table;
 var searchDebounceTimer;
 
 function toggleBulkButtons() {
-    let hasSelected = $('.todo-checkbox:checked').length > 0;
+    const selectedCount = $('.todo-checkbox:checked').length;
+    const totalCount = $('.todo-checkbox').length;
+    const hasSelected = selectedCount > 0;
+    const checkAll = $('#checkAll');
 
-    $('#bulkArchive').prop('disabled', !hasSelected);
-    $('#bulkDone').prop('disabled', !hasSelected);
+    $('#bulkArchive, #bulkDone').prop('disabled', !hasSelected);
+    $('#selectedTodoCount').text(selectedCount + ' selected');
+
+    checkAll.prop('checked', totalCount > 0 && selectedCount === totalCount);
+    checkAll.prop('indeterminate', selectedCount > 0 && selectedCount < totalCount);
 }
 
 $(function () {
@@ -62,7 +68,16 @@ $(function () {
         }
     });
 
+    table.on('preXhr', function () {
+        // Clear the previous page's selection as soon as a new page/filter request starts.
+        $('.todo-checkbox').prop('checked', false);
+        $('#checkAll').prop({ checked: false, indeterminate: false });
+        toggleBulkButtons();
+    });
+
     table.on('draw', function () {
+        // Selection is intentionally limited to the currently rendered page.
+        $('#checkAll').prop({ checked: false, indeterminate: false });
         toggleBulkButtons();
     });
 });
@@ -108,15 +123,12 @@ $('#resetTodoFilters').on('click', function () {
 });
 
 function getSelectedTodos() {
-    let ids = [];
-    $('.todo-checkbox:checked').each(function () {
-        ids.push($(this).val());
-    });
-    return ids;
+    return $('.todo-checkbox:checked').map(function () {
+        return $(this).val();
+    }).get();
 }
 
 $('#bulkArchive').click(function () {
-
     let btn = $(this);
     let ids = getSelectedTodos();
     if (ids.length === 0) {
@@ -164,16 +176,13 @@ $('#bulkDone').click(function () {
     });
 });
 
-$('#checkAll').change(function () {
+$('#checkAll').on('change', function () {
     $('.todo-checkbox').prop('checked', $(this).prop('checked'));
     toggleBulkButtons();
 });
 
-$(document).on('change', '.todo-checkbox', function () {
-    $('#checkAll').prop('checked', $('.todo-checkbox:checked').length === $('.todo-checkbox').length);
-});
-
 $(document).on('change', '.todo-checkbox', toggleBulkButtons);
+
 $(document).on('click', '.toggleCompleteBtn', function () {
     let id = $(this).data('id');
     $.ajax({

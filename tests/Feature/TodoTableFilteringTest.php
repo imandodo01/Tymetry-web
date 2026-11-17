@@ -87,6 +87,9 @@ class TodoTableFilteringTest extends TestCase
             ->get(route('todo.index'))
             ->assertOk()
             ->assertSee('id="resetTodoFilters"', false)
-            ->assertSee('Clear filters');
+            ->assertSee('Clear filters')
+            ->assertSee('id="selectedTodoCount"', false)
+            ->assertSee('id="bulkDone" disabled', false)
+            ->assertSee('id="bulkArchive" disabled', false);
     }
 }
