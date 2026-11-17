@@ -86,12 +86,14 @@ $(document).on('change', '.todo-status', function () {
     });
 });
 
-$('#searchTitle').on('input', function () {
+function scheduleTodoSearch() {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(function () {
         table.draw();
     }, 300);
-});
+}
+
+$('#searchTitle').on('input search', scheduleTodoSearch);
 
 $('#filterStatus, #filterPriority').on('change', function () {
     table.draw();
