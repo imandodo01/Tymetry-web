@@ -77,19 +77,19 @@
                         <th scope="col" class="text-muted fw-semibold py-3">
                             Title
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Completion
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Priority
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Due Status
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Change Status
                         </th>
-                        <th class="text-muted fw-semibold py-3">
+                        <th scope="col" class="text-muted fw-semibold py-3">
                             Due Date
                         </th>
                         <th scope="col" width="120" class="text-muted fw-semibold py-3 text-center">
