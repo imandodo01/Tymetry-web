@@ -85,4 +85,42 @@ class TodoBulkActionsTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('ids.1');
     }
+
+    public function test_bulk_restore_restores_only_selected_todos_owned_by_the_authenticated_user(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $ownedArchivedTodo = Todo::factory()->for($user)->create();
+        $ownedArchivedTodo->delete();
+
+        $otherUsersArchivedTodo = Todo::factory()->for($otherUser)->create();
+        $otherUsersArchivedTodo->delete();
+
+        $response = $this->actingAs($user)->postJson(route('todo.bulk.restore'), [
+            'ids' => [$ownedArchivedTodo->id, $otherUsersArchivedTodo->id],
+        ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $ownedArchivedTodo->id,
+            'deleted_at' => null,
+        ]);
+        $this->assertSoftDeleted('todos', ['id' => $otherUsersArchivedTodo->id]);
+    }
+
+    public function test_bulk_restore_rejects_malformed_selection(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('todo.bulk.restore'), ['ids' => 'not-an-array'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids');
+
+        $this->postJson(route('todo.bulk.restore'), ['ids' => ['invalid-id']])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids.0');
+    }
 }

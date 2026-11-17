@@ -48,4 +48,25 @@ class TodoDueTimeTest extends TestCase
             ->assertRedirect(route('todo.create'))
             ->assertSessionHasErrors('due_time');
     }
+
+    public function test_due_time_is_updated_when_editing_a_todo(): void
+    {
+        $user = User::factory()->create();
+        $todo = \App\Models\Todo::factory()->for($user)->create([
+            'due_time' => '09:00:00',
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('todo.update', $todo->id), [
+                'title' => $todo->title,
+                'description' => $todo->description,
+                'status' => $todo->status->value,
+                'priority' => $todo->priority->value,
+                'due_date' => '2026-11-20',
+                'due_time' => '16:45',
+            ])
+            ->assertRedirect(route('todo.index'));
+
+        $this->assertSame('16:45', substr((string) $todo->fresh()->due_time, 0, 5));
+    }
 }
