@@ -40,8 +40,9 @@
 
 ## Verification boundary
 
-- The latest main checkpoint recorded here is `b3d906eb1a9990dd39b23936b832e05f9c207c03`.
-- CI completed successfully for PR #26 and PR #27.
-- The maintainer reported the M8-A/M8-B changes work as expected.
-- Static source inspection and focused test-file review were performed for this documentation update. The assistant did not execute the local test suite or a real browser session.
+- Latest inspected main baseline: `edc29cbfc4ab2ad0a752969b4d08598ea92fd72b` (2026-11-17).
+- PRs #26, #27, and #28 are merged.
+- GitHub Actions run [#44066718826](https://github.com/imandodo01/Tymetry-web/actions/runs/44066718826) completed successfully for the exact main baseline SHA.
+- That run verifies the configured dependency installation, frontend build, and Laravel test commands. It does not establish production mail delivery, real browser behavior, or a MySQL production integration check.
+- The assistant inspected the source and CI metadata; it did not execute the local test suite or a real browser session.
 - Items marked Implemented or Partially fixed retain the limitations stated in the table; do not interpret this document as a blanket production sign-off.
