@@ -90,6 +90,11 @@ class TodoTableFilteringTest extends TestCase
             ->assertSee('Clear filters')
             ->assertSee('id="selectedTodoCount"', false)
             ->assertSee('id="bulkDone" disabled', false)
-            ->assertSee('id="bulkArchive" disabled', false);
+            ->assertSee('id="bulkArchive" disabled', false)
+            ->assertSee('id="todoTableLoading"', false)
+            ->assertSee('id="todoTableError"', false)
+            ->assertSee('id="retryTodoTable"', false)
+            ->assertSee('role="status"', false)
+            ->assertSee('role="alert"', false);
     }
 }
