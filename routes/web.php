@@ -22,10 +22,10 @@ Route::controller(AuthController::class)->name('auth.')->group(function () {
 
 Route::controller(ForgotPasswordController::class)->name('password.')->group(function () {
     Route::get('/forgot-password', 'forgotPassword')->name('index');
-    Route::post('/forgot-password', 'sendResetLink')->name('resetLink');
+    Route::post('/forgot-password', 'sendResetLink')->middleware('throttle:5,1')->name('resetLink');
 
     Route::get('/reset-password/{token}', 'resetPassword')->name('reset');
-    Route::post('/reset-password', 'updatePassword')->name('update');
+    Route::post('/reset-password', 'updatePassword')->middleware('throttle:5,1')->name('update');
 });
 
 Route::controller(OtpController::class)->name('otp.')->group(function () {
