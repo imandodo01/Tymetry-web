@@ -4,7 +4,7 @@ Use this guide to verify current Tymetry-web behavior. A checklist is a test pla
 
 ## Setup
 
-Requirements: PHP 8.3+, Composer, Node.js/npm, a configured database, and a valid application key.
+Requirements: PHP 8.3+, Composer, Node.js 24 LTS/npm, a configured database, and a valid application key.
 
 ```bash
 composer install
@@ -16,7 +16,7 @@ Configure the database, mail transport, and cache in `.env`. For a local develop
 
 ```bash
 php artisan migrate
-npm install
+npm ci
 npm run build
 php artisan test
 ```
@@ -32,7 +32,7 @@ php artisan test
 npm run build
 ```
 
-Record the date, commit SHA, PHP/database environment, command, result, and any blocker when reporting a verification run. Passing tests only verify assertions that exist.
+Record the date, commit SHA, PHP/database/Node environment, command, result, and any blocker when reporting a verification run. Passing tests only verify assertions that exist.
 
 The repository's focused feature/unit tests currently cover:
 
@@ -93,11 +93,12 @@ The repository's focused feature/unit tests currently cover:
 
 ## Verification checkpoint (2026-11-17)
 
-- PR #26 (feedback consistency): GitHub Actions CI completed successfully; the maintainer reported the changed behavior works as expected.
-- PR #27 (form/accessibility consistency): GitHub Actions CI completed successfully; the maintainer reported the changed behavior works as expected.
-- The main branch checkpoint is `b3d906eb1a9990dd39b23936b832e05f9c207c03`.
+- Main baseline: `edc29cbfc4ab2ad0a752969b4d08598ea92fd72b`.
+- GitHub Actions run [#44066718826](https://github.com/imandodo01/Tymetry-web/actions/runs/44066718826) completed successfully for that exact main SHA. The workflow installed PHP dependencies, ran `npm ci`, built frontend assets, and ran `php artisan test`.
+- PRs #26 (feedback consistency), #27 (form/accessibility consistency), and #28 (documentation closure) are merged.
 - Responsive source inspection found the expected narrow-screen layout and responsive table wrappers. A viewport-specific browser run is not recorded in this checkpoint.
-- No claim is made here that the assistant executed the local PHP test suite or a real browser session.
+- The assistant inspected the workflow and run metadata; it did not execute the local PHP test suite or a real browser session.
+- The Node.js 24 CI change proposed in this Sprint 07 PR is not verified until its own pull-request workflow completes successfully.
 
 ## Safe test-data handling
 
