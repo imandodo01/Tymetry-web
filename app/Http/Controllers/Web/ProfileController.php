@@ -13,8 +13,9 @@ class ProfileController extends Controller
     public function index(TotpService $totp)
     {
         $user = auth()->user();
-        $pendingTotpUri = $user->two_factor_secret && !$user->two_factor_confirmed_at
-            ? $totp->provisioningUri($user, $user->two_factor_secret)
+        $pendingTotpSecret = $totp->pendingSetupSecret($user);
+        $pendingTotpUri = $pendingTotpSecret
+            ? $totp->provisioningUri($user, $pendingTotpSecret)
             : null;
 
         return view('profile.index', compact('pendingTotpUri'));
@@ -92,7 +93,7 @@ class ProfileController extends Controller
             return back()->withErrors(['two_factor_enabled' => $exception->getMessage()]);
         }
 
-        return back()->with('success', 'Authenticator setup started. Add the account to your authenticator app, then confirm the six-digit code.');
+        return back()->with('success', 'Authenticator setup started. Add the account to your authenticator app, then confirm the six-digit code within 10 minutes.');
     }
 
     public function twoFactorConfirm(Request $request, TotpService $totp)

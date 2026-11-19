@@ -15,6 +15,7 @@ class TotpService
     private const PERIOD_SECONDS = 30;
     private const CODE_DIGITS = 6;
     private const RECOVERY_CODE_COUNT = 8;
+    private const SETUP_EXPIRY_MINUTES = 10;
 
     public function beginSetup(User $user): string
     {
@@ -31,12 +32,39 @@ class TotpService
                 'two_factor_secret' => $secret,
                 'two_factor_recovery_codes' => null,
                 'two_factor_confirmed_at' => null,
+                'two_factor_setup_expires_at' => now()->addMinutes(self::SETUP_EXPIRY_MINUTES),
                 'two_factor_last_used_counter' => null,
             ])->save();
 
             $this->recordSecurityEvent($lockedUser, 'mfa_setup_started', 'Started authenticator-based MFA enrollment.');
 
             return $secret;
+        });
+    }
+
+    /**
+     * Return the pending setup secret only while its server-side expiry is valid.
+     * Expired or legacy pending setups without an expiry are cleared atomically.
+     */
+    public function pendingSetupSecret(User $user): ?string
+    {
+        return DB::transaction(function () use ($user): ?string {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (!$lockedUser->two_factor_secret || $lockedUser->two_factor_confirmed_at) {
+                return null;
+            }
+
+            if (
+                !$lockedUser->two_factor_setup_expires_at
+                || $lockedUser->two_factor_setup_expires_at->lessThanOrEqualTo(now())
+            ) {
+                $this->clearPendingSetup($lockedUser);
+
+                return null;
+            }
+
+            return (string) $lockedUser->two_factor_secret;
         });
     }
 
@@ -85,6 +113,15 @@ class TotpService
                 return null;
             }
 
+            if (
+                !$lockedUser->two_factor_setup_expires_at
+                || $lockedUser->two_factor_setup_expires_at->lessThanOrEqualTo(now())
+            ) {
+                $this->clearPendingSetup($lockedUser);
+
+                return null;
+            }
+
             $counter = $this->matchingCounter($lockedUser->two_factor_secret, $code);
 
             if ($counter === null) {
@@ -97,6 +134,7 @@ class TotpService
                 'two_factor_enabled' => true,
                 'two_factor_method' => 'totp',
                 'two_factor_confirmed_at' => now(),
+                'two_factor_setup_expires_at' => null,
                 'two_factor_last_used_counter' => $counter,
                 'two_factor_recovery_codes' => array_map(
                     static fn (string $recoveryCode): string => Hash::make($recoveryCode),
@@ -193,11 +231,25 @@ class TotpService
                 'two_factor_secret' => null,
                 'two_factor_recovery_codes' => null,
                 'two_factor_confirmed_at' => null,
+                'two_factor_setup_expires_at' => null,
                 'two_factor_last_used_counter' => null,
             ])->save();
 
             $this->recordSecurityEvent($lockedUser, 'mfa_disabled', 'Disabled multi-factor authentication.');
         });
+    }
+
+    private function clearPendingSetup(User $user): void
+    {
+        $user->forceFill([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'two_factor_setup_expires_at' => null,
+            'two_factor_last_used_counter' => null,
+        ])->save();
+
+        $this->recordSecurityEvent($user, 'mfa_setup_expired', 'An unconfirmed authenticator enrollment expired and its pending secret was cleared.');
     }
 
     private function recordSecurityEvent(User $user, string $action, string $description): void

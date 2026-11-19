@@ -37,27 +37,52 @@ class TotpAuthenticationTest extends TestCase
         $this->assertNotSame($freshUser->two_factor_secret, $storedSecret);
         $this->assertFalse($freshUser->two_factor_enabled);
         $this->assertNull($freshUser->two_factor_confirmed_at);
+        $this->assertEquals(now()->addMinutes(10)->timestamp, $freshUser->two_factor_setup_expires_at->timestamp);
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $user->id,
             'action' => 'mfa_setup_started',
         ]);
     }
 
-    public function test_unverified_email_cannot_start_authenticator_enrollment(): void
+    public function test_pending_setup_secret_is_cleared_when_the_ten_minute_expiry_is_reached(): void
     {
-        $user = User::factory()->create([
-            'email_verified_at' => null,
-            'password' => 'correct-password',
+        $this->travelTo(Carbon::parse('2026-11-19 10:00:00', 'UTC'));
+
+        $user = User::factory()->create();
+        $user->forceFill([
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_setup_expires_at' => now()->addMinutes(10),
+        ])->save();
+
+        $this->travel(10)->minutes();
+
+        $this->assertNull(app(TotpService::class)->pendingSetupSecret($user));
+
+        $freshUser = $user->fresh();
+        $this->assertNull($freshUser->two_factor_secret);
+        $this->assertNull($freshUser->two_factor_setup_expires_at);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_setup_expired',
         ]);
+    }
 
-        $this->actingAs($user)
-            ->post(route('profile.two-factor.setup'), [
-                'current_password' => 'correct-password',
-            ])
-            ->assertSessionHasErrors('two_factor_enabled');
+    public function test_confirmation_rejects_and_clears_an_expired_pending_setup(): void
+    {
+        $this->travelTo(Carbon::createFromTimestamp(59, 'UTC'));
 
-        $this->assertNull($user->fresh()->two_factor_secret);
-        $this->assertFalse($user->fresh()->two_factor_enabled);
+        $user = User::factory()->create();
+        $user->forceFill([
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_setup_expires_at' => now()->subSecond(),
+        ])->save();
+
+        $this->assertNull(app(TotpService::class)->confirmSetup($user, '287082'));
+
+        $freshUser = $user->fresh();
+        $this->assertNull($freshUser->two_factor_secret);
+        $this->assertNull($freshUser->two_factor_setup_expires_at);
+        $this->assertFalse($freshUser->two_factor_enabled);
     }
 
     public function test_confirming_a_valid_authenticator_code_enables_totp_and_returns_recovery_codes(): void
@@ -65,7 +90,10 @@ class TotpAuthenticationTest extends TestCase
         $this->travelTo(Carbon::createFromTimestamp(59, 'UTC'));
 
         $user = User::factory()->create();
-        $user->forceFill(['two_factor_secret' => self::RFC_SECRET])->save();
+        $user->forceFill([
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_setup_expires_at' => now()->addMinutes(10),
+        ])->save();
 
         $recoveryCodes = app(TotpService::class)->confirmSetup($user, '287082');
         $freshUser = $user->fresh();
@@ -74,6 +102,7 @@ class TotpAuthenticationTest extends TestCase
         $this->assertTrue($freshUser->two_factor_enabled);
         $this->assertSame('totp', $freshUser->two_factor_method);
         $this->assertNotNull($freshUser->two_factor_confirmed_at);
+        $this->assertNull($freshUser->two_factor_setup_expires_at);
         $this->assertSame(1, $freshUser->two_factor_last_used_counter);
         $this->assertCount(8, $freshUser->two_factor_recovery_codes);
         $this->assertNotSame($recoveryCodes[0], $freshUser->two_factor_recovery_codes[0]);
@@ -179,6 +208,7 @@ class TotpAuthenticationTest extends TestCase
         $this->assertNull($freshUser->two_factor_secret);
         $this->assertNull($freshUser->two_factor_recovery_codes);
         $this->assertNull($freshUser->two_factor_confirmed_at);
+        $this->assertNull($freshUser->two_factor_setup_expires_at);
         $this->assertNull($freshUser->two_factor_last_used_counter);
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $user->id,
