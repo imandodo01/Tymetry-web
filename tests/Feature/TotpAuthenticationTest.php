@@ -44,6 +44,23 @@ class TotpAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_totp_secret_and_recovery_hashes_are_hidden_from_user_serialization(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_recovery_codes' => ['hashed-recovery-code'],
+        ])->save();
+
+        $freshUser = $user->fresh();
+        $serialized = $freshUser->toArray();
+
+        $this->assertArrayNotHasKey('two_factor_secret', $serialized);
+        $this->assertArrayNotHasKey('two_factor_recovery_codes', $serialized);
+        $this->assertSame(self::RFC_SECRET, $freshUser->two_factor_secret);
+        $this->assertSame(['hashed-recovery-code'], $freshUser->two_factor_recovery_codes);
+    }
+
     public function test_profile_renders_local_qr_setup_and_manual_key_fallback(): void
     {
         $user = User::factory()->create([
