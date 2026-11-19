@@ -79,7 +79,7 @@ class ActivityLogAtomicityTest extends TestCase
 
         try {
             $this->actingAs($user)->patchJson(route('todo.priority', $todo->id), [
-                'priority' => 3,
+                'priority' => 2,
             ]);
         } catch (RuntimeException $exception) {
             $this->assertSame('Simulated activity log failure.', $exception->getMessage());
