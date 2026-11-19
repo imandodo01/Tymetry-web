@@ -37,6 +37,10 @@ class TotpAuthenticationTest extends TestCase
         $this->assertNotSame($freshUser->two_factor_secret, $storedSecret);
         $this->assertFalse($freshUser->two_factor_enabled);
         $this->assertNull($freshUser->two_factor_confirmed_at);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_setup_started',
+        ]);
     }
 
     public function test_unverified_email_cannot_start_authenticator_enrollment(): void
@@ -73,6 +77,10 @@ class TotpAuthenticationTest extends TestCase
         $this->assertSame(1, $freshUser->two_factor_last_used_counter);
         $this->assertCount(8, $freshUser->two_factor_recovery_codes);
         $this->assertNotSame($recoveryCodes[0], $freshUser->two_factor_recovery_codes[0]);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_enabled',
+        ]);
     }
 
     public function test_totp_login_accepts_a_current_code_only_once(): void
@@ -107,6 +115,10 @@ class TotpAuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_totp_verified',
+        ]);
     }
 
     public function test_incomplete_totp_enrollment_cannot_authenticate(): void
@@ -140,6 +152,38 @@ class TotpAuthenticationTest extends TestCase
         $this->assertTrue($service->verifyLogin($user, 'abcde12345'));
         $this->assertFalse($service->verifyLogin($user, 'ABCDE12345'));
         $this->assertSame([], $user->fresh()->two_factor_recovery_codes);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_recovery_code_used',
+        ]);
+    }
+
+    public function test_disabling_totp_clears_secrets_and_records_the_security_event(): void
+    {
+        $user = User::factory()->create([
+            'two_factor_enabled' => true,
+        ]);
+        $user->forceFill([
+            'two_factor_method' => 'totp',
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_confirmed_at' => now(),
+            'two_factor_recovery_codes' => [Hash::make('ABCDE12345')],
+            'two_factor_last_used_counter' => 1,
+        ])->save();
+
+        app(TotpService::class)->disable($user);
+
+        $freshUser = $user->fresh();
+        $this->assertFalse($freshUser->two_factor_enabled);
+        $this->assertNull($freshUser->two_factor_method);
+        $this->assertNull($freshUser->two_factor_secret);
+        $this->assertNull($freshUser->two_factor_recovery_codes);
+        $this->assertNull($freshUser->two_factor_confirmed_at);
+        $this->assertNull($freshUser->two_factor_last_used_counter);
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'action' => 'mfa_disabled',
+        ]);
     }
 
     public function test_legacy_email_mfa_remains_active_until_the_user_migrates_to_totp(): void
