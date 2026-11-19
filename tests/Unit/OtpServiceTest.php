@@ -5,12 +5,15 @@ namespace Tests\Unit;
 use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Tests\TestCase;
 
 class OtpServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     private ?string $sentCode = null;
 
     protected function setUp(): void
@@ -102,6 +105,21 @@ class OtpServiceTest extends TestCase
         }
 
         $this->assertTrue($thrown, 'A concurrent send must not enter the protected challenge operation.');
+    }
+
+    public function test_database_cache_store_supports_the_otp_lock_workflow(): void
+    {
+        config(['cache.default' => 'database']);
+        Cache::store('database')->flush();
+
+        $user = $this->makeUser();
+        $this->expectOtpEmail();
+
+        $service = app(OtpService::class);
+        $service->send($user, 'email_verification');
+
+        $this->assertNotNull($this->sentCode);
+        $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_unsupported_otp_purpose_is_rejected(): void
