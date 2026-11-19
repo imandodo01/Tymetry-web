@@ -30,13 +30,13 @@ class OtpServiceTest extends TestCase
 
         $this->assertNotNull($this->sentCode);
         $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
-        $this->assertFalse($service->verify($user, 'email_verification', $code));
+        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_invalid_attempts_exhaust_and_remove_the_challenge(): void
     {
         $user = $this->makeUser();
-        $code = $this->expectOtpEmail();
+        $this->expectOtpEmail();
 
         $service = app(OtpService::class);
         $service->send($user, 'email_verification');
@@ -45,8 +45,8 @@ class OtpServiceTest extends TestCase
             $this->assertFalse($service->verify($user, 'email_verification', '000000'));
         }
 
-        $this->assertNotNull($code);
-        $this->assertFalse($service->verify($user, 'email_verification', $code));
+        $this->assertNotNull($this->sentCode);
+        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_resend_is_rejected_during_the_cooldown_window(): void
@@ -72,15 +72,15 @@ class OtpServiceTest extends TestCase
     public function test_expired_challenge_cannot_be_verified(): void
     {
         $user = $this->makeUser();
-        $code = $this->expectOtpEmail();
+        $this->expectOtpEmail();
 
         $service = app(OtpService::class);
         $service->send($user, 'email_verification');
 
         $this->travel(config('authentication.otp_expiry_minutes', 5) + 1)->minutes();
 
-        $this->assertNotNull($code);
-        $this->assertFalse($service->verify($user, 'email_verification', $code));
+        $this->assertNotNull($this->sentCode);
+        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_send_does_not_overwrite_a_challenge_while_its_lock_is_held(): void
@@ -133,9 +133,9 @@ class OtpServiceTest extends TestCase
 
         Mail::shouldReceive('raw')
             ->once()
-            ->withArgs(function (string $message, callable $callback) use (&$code): bool {
+            ->withArgs(function ($message, $callback): bool {
                 if (preg_match('/code is (\d{6})/', $message, $matches) === 1) {
-                    $code = $matches[1];
+                    $this->sentCode = $matches[1];
                 }
 
                 return true;
