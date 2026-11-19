@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Mail;
+use Mockery;
 use RuntimeException;
 use Tests\TestCase;
 
