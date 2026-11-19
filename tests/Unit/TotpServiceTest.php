@@ -24,6 +24,7 @@ class TotpServiceTest extends TestCase
 
         $this->assertNull($service->matchingCounter('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ', '12345', 59));
         $this->assertNull($service->matchingCounter('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ', 'ABCDEF', 59));
+        $this->assertNull($service->matchingCounter('', '287082', 59));
     }
 
     public function test_provisioning_uri_contains_the_standard_authenticator_parameters(): void
