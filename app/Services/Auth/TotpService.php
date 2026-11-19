@@ -122,7 +122,7 @@ class TotpService
             $recoveryCodes = $lockedUser->two_factor_recovery_codes ?? [];
 
             foreach ($recoveryCodes as $index => $recoveryCodeHash) {
-                if (Hash::check($code, $recoveryCodeHash)) {
+                if (Hash::check(Str::upper($code), $recoveryCodeHash)) {
                     unset($recoveryCodes[$index]);
                     $lockedUser->forceFill([
                         'two_factor_recovery_codes' => array_values($recoveryCodes),
