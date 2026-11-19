@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Todo extends Model
 {
@@ -17,6 +18,10 @@ class Todo extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Todo $todo): void {
+            $todo->public_id ??= (string) Str::uuid7();
+        });
+
         static::saving(function (Todo $todo): void {
             if ($todo->status === TodoStatus::Done) {
                 $todo->completed_at ??= now();
@@ -75,9 +80,11 @@ class Todo extends Model
             default => 'bg-light text-dark',
         };
     }
+
     public function dueLabel(): string
     {
         if (!$this->due_date) return 'No due date';
+
         return \Carbon\Carbon::parse($this->due_date)->diffForHumans();
     }
 
