@@ -50,7 +50,7 @@ class TotpService
 
     public function matchingCounter(string $secret, string $code, ?int $timestamp = null): ?int
     {
-        if (!preg_match('/\A\d{6}\z/', $code)) {
+        if (!preg_match('/\A\d{6}\z/', $code) || !preg_match('/\A[A-Z2-7]{32}\z/i', $secret)) {
             return null;
         }
 
@@ -106,7 +106,13 @@ class TotpService
         return DB::transaction(function () use ($user, $code): bool {
             $lockedUser = User::query()->lockForUpdate()->find($user->getKey());
 
-            if (!$lockedUser || !$lockedUser->two_factor_enabled || $lockedUser->two_factor_method !== 'totp') {
+            if (
+                !$lockedUser
+                || !$lockedUser->two_factor_enabled
+                || $lockedUser->two_factor_method !== 'totp'
+                || !$lockedUser->two_factor_secret
+                || !$lockedUser->two_factor_confirmed_at
+            ) {
                 return false;
             }
 
@@ -141,7 +147,12 @@ class TotpService
         return DB::transaction(function () use ($user): array {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
-            if (!$lockedUser->two_factor_enabled || $lockedUser->two_factor_method !== 'totp') {
+            if (
+                !$lockedUser->two_factor_enabled
+                || $lockedUser->two_factor_method !== 'totp'
+                || !$lockedUser->two_factor_secret
+                || !$lockedUser->two_factor_confirmed_at
+            ) {
                 throw new RuntimeException('Authenticator-based two-factor authentication is not enabled.');
             }
 
