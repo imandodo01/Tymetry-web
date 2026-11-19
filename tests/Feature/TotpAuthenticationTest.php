@@ -109,6 +109,20 @@ class TotpAuthenticationTest extends TestCase
         $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
     }
 
+    public function test_incomplete_totp_enrollment_cannot_authenticate(): void
+    {
+        $user = User::factory()->create([
+            'two_factor_enabled' => true,
+        ]);
+        $user->forceFill([
+            'two_factor_method' => 'totp',
+            'two_factor_secret' => null,
+            'two_factor_confirmed_at' => null,
+        ])->save();
+
+        $this->assertFalse(app(TotpService::class)->verifyLogin($user, '287082'));
+    }
+
     public function test_recovery_code_is_consumed_after_one_successful_use(): void
     {
         $user = User::factory()->create([
