@@ -178,14 +178,23 @@
                         @if ($pendingTotpUri)
                             <h6 class="fw-semibold">1. Add Tymetry to your authenticator app</h6>
                             <p class="small text-muted">
-                                Choose manual setup in your authenticator app and enter this secret. Keep it private.
+                                Scan this QR code with your authenticator app, or use the manual setup key below. Keep both private.
                             </p>
                             <div class="mb-3">
                                 <label class="form-label">Account</label>
                                 <input type="text" class="form-control" value="{{ auth()->user()->email }}" readonly>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Setup key</label>
+                                <div id="totp-qr-code" class="d-inline-block bg-white p-2 border rounded"
+                                    data-provisioning-uri="{{ $pendingTotpUri }}"
+                                    role="img"
+                                    aria-label="Authenticator setup QR code"></div>
+                                <noscript>
+                                    <p class="small text-warning mt-2">QR rendering requires JavaScript. Use the manual setup key below.</p>
+                                </noscript>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Manual setup key</label>
                                 <input type="text" class="form-control font-monospace" value="{{ auth()->user()->two_factor_secret }}" readonly>
                             </div>
                             <details class="mb-4">
@@ -254,7 +263,17 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/vendor/qrcode/qrcode.min.js') }}"></script>
 <script>
+    const totpQrContainer = document.getElementById('totp-qr-code');
+    if (totpQrContainer && typeof QRCode !== 'undefined') {
+        new QRCode(totpQrContainer, {
+            text: totpQrContainer.dataset.provisioningUri,
+            width: 192,
+            height: 192,
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
     const toggleCurrentPassword = document.getElementById('toggleCurrentPassword');
     const currentPassword = document.getElementById('current_password');
     const iconCurrent = toggleCurrentPassword.querySelector('i');
