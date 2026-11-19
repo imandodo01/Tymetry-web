@@ -41,7 +41,7 @@ class TodoInputNormalizationTest extends TestCase
         $this->actingAs($user)
             ->put(route('todo.update', $todo->id), [
                 'title' => "  New title  ",
-                'description' => '  Keep this text  ',
+                'description' => '  Keep   this text  ',
                 'status' => 0,
                 'priority' => 1,
             ])
@@ -50,7 +50,7 @@ class TodoInputNormalizationTest extends TestCase
         $todo->refresh();
 
         $this->assertSame('New title', $todo->title);
-        $this->assertSame('  Keep this text  ', $todo->description);
+        $this->assertSame('Keep   this text', $todo->description);
     }
 
     public function test_whitespace_only_title_is_rejected(): void
