@@ -121,4 +121,5 @@ class ProfileController extends Controller
         return back()
             ->with('success', 'New recovery codes generated. Previous recovery codes are no longer valid.')
             ->with('recovery_codes', $recoveryCodes);
-    }}
+    }
+}
