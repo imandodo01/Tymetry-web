@@ -98,6 +98,8 @@ Remote source inspection of `imandodo01/Tymetry-web` confirms:
 
 The database types establish storage shape but do not by themselves define API serialization or account-timezone behavior. In particular, SQL `DATE`/`TIME` values must remain date-only/time-only at the application boundary; do not pass either through a timezone conversion.
 
+**Ordering implementation status at the inspected base SHA:** the current `main` version of `Todo::scopeSmartOrder()` still compares `due_date` with database `CURRENT_DATE` (Todo model blob `33d659d1e3a1f693b0b0287eea76ecda5dceb110`). A separate, still-open PR [#35](https://github.com/imandodo01/Tymetry-web/pull/35) at head `a5b2c3b6a6108f1a81629377586337a24fe4620c` proposes replacing this with `now()->toDateString()`, which uses the configured Laravel application timezone. That PR is not part of this document's base `main` SHA and must not be described as merged or deployed. Even if PR #35 is integrated, it aligns ordering with `APP_TIMEZONE`; it does not by itself implement the approved account-level `time_zone` preference. Account-timezone-aware date grouping remains a separate implementation step.
+
 ### 4.2 Native Android — current implementation facts
 
 Remote source inspection of `imandodo01/Tymetri` confirms:
