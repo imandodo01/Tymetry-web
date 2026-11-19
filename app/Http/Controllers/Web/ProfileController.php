@@ -80,6 +80,12 @@ class ProfileController extends Controller
             'current_password' => ['required', 'current_password'],
         ]);
 
+        if (!$request->user()->email_verified_at) {
+            return back()->withErrors([
+                'two_factor_enabled' => 'Verify your email address before enabling two-factor authentication.',
+            ]);
+        }
+
         try {
             $totp->beginSetup($request->user());
         } catch (RuntimeException $exception) {
