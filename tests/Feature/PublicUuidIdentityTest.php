@@ -47,9 +47,14 @@ class PublicUuidIdentityTest extends TestCase
         $user = User::factory()->create();
         $requestedPublicId = '01933f1e-7b2a-7c41-9a2e-4e3c8a1b5f10';
 
-        $todo = Todo::factory()->for($user)->create([
+        $todo = new Todo([
             'public_id' => $requestedPublicId,
+            'title' => 'Mass assignment protection',
+            'status' => 0,
+            'priority' => 1,
         ]);
+        $todo->user()->associate($user);
+        $todo->save();
 
         $this->assertNotSame($requestedPublicId, $todo->public_id);
         $this->assertNotSame((string) $user->getKey(), $user->public_id);
