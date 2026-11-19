@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use App\Enums\Todo\TodoPriority;
 use App\Enums\Todo\TodoStatus;
 use Illuminate\Database\Eloquent\Model;
