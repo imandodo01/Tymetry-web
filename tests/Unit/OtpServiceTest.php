@@ -11,6 +11,8 @@ use Tests\TestCase;
 
 class OtpServiceTest extends TestCase
 {
+    private ?string $sentCode = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,13 +23,13 @@ class OtpServiceTest extends TestCase
     public function test_sent_code_can_be_verified_once(): void
     {
         $user = $this->makeUser();
-        $code = $this->expectOtpEmail();
+        $this->expectOtpEmail();
 
         $service = app(OtpService::class);
         $service->send($user, 'email_verification');
 
-        $this->assertNotNull($code);
-        $this->assertTrue($service->verify($user, 'email_verification', $code));
+        $this->assertNotNull($this->sentCode);
+        $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
         $this->assertFalse($service->verify($user, 'email_verification', $code));
     }
 
@@ -125,9 +127,9 @@ class OtpServiceTest extends TestCase
         return $user;
     }
 
-    private function expectOtpEmail(): ?string
+    private function expectOtpEmail(): void
     {
-        $code = null;
+        $this->sentCode = null;
 
         Mail::shouldReceive('raw')
             ->once()
@@ -138,8 +140,6 @@ class OtpServiceTest extends TestCase
 
                 return true;
             });
-
-        return $code;
     }
 
     private function lockKey(User $user, string $purpose): string
