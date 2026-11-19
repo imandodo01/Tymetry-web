@@ -97,6 +97,12 @@ class ProfileController extends Controller
 
     public function twoFactorConfirm(Request $request, TotpService $totp)
     {
+        if (!$request->user()->email_verified_at) {
+            return back()->withErrors([
+                'two_factor_enabled' => 'Verify your email address before enabling two-factor authentication.',
+            ]);
+        }
+
         $validated = $request->validate([
             'code' => ['required', 'digits:6'],
         ]);
