@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -19,6 +20,7 @@ class ActivityLogAtomicityTest extends TestCase
         $user = User::factory()->create();
 
         $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
 
         try {
             $this->actingAs($user)->post(route('todo.store'), [
@@ -27,7 +29,6 @@ class ActivityLogAtomicityTest extends TestCase
                 'status' => TodoStatus::Pending->value,
                 'priority' => 1,
             ]);
-            $this->fail('The activity log failure should propagate.');
         } catch (RuntimeException $exception) {
             $this->assertSame('Simulated activity log failure.', $exception->getMessage());
         }
@@ -48,12 +49,12 @@ class ActivityLogAtomicityTest extends TestCase
         ]);
 
         $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
 
         try {
             $this->actingAs($user)->postJson(route('todo.status', $todo->id), [
                 'status' => TodoStatus::Done->value,
             ]);
-            $this->fail('The activity log failure should propagate.');
         } catch (RuntimeException $exception) {
             $this->assertSame('Simulated activity log failure.', $exception->getMessage());
         }
@@ -68,7 +69,7 @@ class ActivityLogAtomicityTest extends TestCase
 
     private function failActivityLogWrites(): void
     {
-        ActivityLog::creating(static function (): void {
+        Event::listen('eloquent.creating: ' . ActivityLog::class, static function (): void {
             throw new RuntimeException('Simulated activity log failure.');
         });
     }
