@@ -105,6 +105,7 @@ class TodoAuthorizationTest extends TestCase
             'user_id' => $owner->id,
             'priority' => TodoPriority::Low->value,
         ]);
+        $this->assertDatabaseCount('activity_logs', 0);
     }
 
     public function test_user_cannot_change_another_users_due_date(): void
