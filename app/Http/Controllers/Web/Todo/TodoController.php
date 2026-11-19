@@ -292,19 +292,16 @@ class TodoController extends Controller
 
     public function updatePriority(Request $request, $id)
     {
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
-
-        abort_if($todo->user_id !== auth()->id(), 403);
-
         $validated = $request->validate([
             'priority' => ['required', 'integer', Rule::in(array_map(fn (TodoPriority $priority) => $priority->value, TodoPriority::cases()))],
         ]);
 
-        $todo->update([
-            'priority' => $validated['priority'],
-        ]);
+        $this->mutateWithActivity(function () use ($validated, $id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->update(['priority' => $validated['priority']]);
+
+            return $todo;
+        }, 'priority_updated', 'Updated todo priority');
 
         return response()->json(['success' => true]);
     }

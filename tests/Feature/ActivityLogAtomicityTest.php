@@ -67,6 +67,32 @@ class ActivityLogAtomicityTest extends TestCase
         $this->assertDatabaseCount('activity_logs', 0);
     }
 
+    public function test_todo_priority_update_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create([
+            'priority' => 1,
+        ]);
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->patchJson(route('todo.priority', $todo->id), [
+                'priority' => 3,
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'user_id' => $user->id,
+            'priority' => 1,
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
     private function failActivityLogWrites(): void
     {
         Event::listen('eloquent.creating: ' . ActivityLog::class, static function (): void {
