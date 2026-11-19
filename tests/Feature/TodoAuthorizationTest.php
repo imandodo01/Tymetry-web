@@ -50,7 +50,7 @@ class TodoAuthorizationTest extends TestCase
             ->delete(route('todo.destroy', $todo->id))
             ->assertNotFound();
 
-        $this->assertNotSoftDeleted('todos', ['id' => $todo->id]);
+        $this->assertDatabaseHas('todos', ['id' => $todo->id, 'deleted_at' => null]);
         $this->assertDatabaseCount('activity_logs', 0);
     }
 
