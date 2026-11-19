@@ -108,6 +108,25 @@ class OtpServiceTest extends TestCase
         $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
     }
 
+    public function test_failed_email_delivery_removes_the_prepared_challenge(): void
+    {
+        $user = $this->makeUser();
+        $challengeKey = 'auth:otp:email_verification:123:otp-test@example.com';
+
+        Mail::shouldReceive('raw')
+            ->once()
+            ->andThrow(new RuntimeException('Mail transport unavailable.'));
+
+        try {
+            app(OtpService::class)->send($user, 'email_verification');
+            $this->fail('The mail transport exception should be propagated.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Mail transport unavailable.', $exception->getMessage());
+        }
+
+        $this->assertFalse(Cache::has($challengeKey));
+    }
+
     public function test_send_does_not_overwrite_a_challenge_while_its_lock_is_held(): void
     {
         $user = $this->makeUser();

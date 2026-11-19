@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 class OtpService
 {
@@ -29,22 +30,28 @@ class OtpService
                 $code = (string) random_int(100000, 999999);
                 $expiresAt = now()->addMinutes(config('authentication.otp_expiry_minutes', 5));
 
-                Mail::raw(
-                    "Your Tymetry verification code is {$code}. It expires in "
-                        . config('authentication.otp_expiry_minutes', 5)
-                        . " minutes. If you did not request this code, you can ignore this email.",
-                    function ($message) use ($user, $purpose): void {
-                        $message->to($user->email)
-                            ->subject($purpose === 'two_factor' ? 'Your Tymetry sign-in code' : 'Verify your Tymetry email');
-                    }
-                );
-
                 Cache::put($key, [
                     'hash' => Hash::make($code),
                     'expires_at' => $expiresAt->timestamp,
                     'sent_at' => now()->timestamp,
                     'attempts' => 0,
                 ], $expiresAt);
+
+                try {
+                    Mail::raw(
+                        "Your Tymetry verification code is {$code}. It expires in "
+                            . config('authentication.otp_expiry_minutes', 5)
+                            . " minutes. If you did not request this code, you can ignore this email.",
+                        function ($message) use ($user, $purpose): void {
+                            $message->to($user->email)
+                                ->subject($purpose === 'two_factor' ? 'Your Tymetry sign-in code' : 'Verify your Tymetry email');
+                        }
+                    );
+                } catch (Throwable $exception) {
+                    Cache::forget($key);
+
+                    throw $exception;
+                }
 
                 return true;
             });
