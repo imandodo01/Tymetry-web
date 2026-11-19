@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Tests\TestCase;
@@ -34,6 +35,26 @@ class OtpServiceTest extends TestCase
         $this->assertNotNull($this->sentCode);
         $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
         $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
+    }
+
+    public function test_email_verification_message_uses_the_account_address_and_expected_subject(): void
+    {
+        $user = $this->makeUser();
+        $this->expectOtpEmailFor($user, 'Verify your Tymetry email');
+
+        app(OtpService::class)->send($user, 'email_verification');
+
+        $this->assertNotNull($this->sentCode);
+    }
+
+    public function test_legacy_second_factor_message_uses_the_sign_in_subject(): void
+    {
+        $user = $this->makeUser();
+        $this->expectOtpEmailFor($user, 'Your Tymetry sign-in code');
+
+        app(OtpService::class)->send($user, 'two_factor');
+
+        $this->assertNotNull($this->sentCode);
     }
 
     public function test_invalid_attempts_exhaust_and_remove_the_challenge(): void
@@ -155,6 +176,29 @@ class OtpServiceTest extends TestCase
                 if (preg_match('/code is (\d{6})/', $message, $matches) === 1) {
                     $this->sentCode = $matches[1];
                 }
+
+                return true;
+            });
+    }
+
+    private function expectOtpEmailFor(User $user, string $subject): void
+    {
+        $this->sentCode = null;
+
+        $mailMessage = Mockery::mock(Message::class);
+        $mailMessage->shouldReceive('to')->once()->with($user->email)->andReturnSelf();
+        $mailMessage->shouldReceive('subject')->once()->with($subject)->andReturnSelf();
+
+        Mail::shouldReceive('raw')
+            ->once()
+            ->withArgs(function ($message, $callback) use ($mailMessage): bool {
+                $this->assertStringContainsString('expires in', $message);
+
+                if (preg_match('/code is (\\d{6})/', $message, $matches) === 1) {
+                    $this->sentCode = $matches[1];
+                }
+
+                $callback($mailMessage);
 
                 return true;
             });
