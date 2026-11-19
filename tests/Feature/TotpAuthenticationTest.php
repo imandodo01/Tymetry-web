@@ -44,6 +44,23 @@ class TotpAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_unverified_email_cannot_start_authenticator_enrollment(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+            'password' => 'correct-password',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('profile.two-factor.setup'), [
+                'current_password' => 'correct-password',
+            ])
+            ->assertSessionHasErrors('two_factor_enabled');
+
+        $this->assertNull($user->fresh()->two_factor_secret);
+        $this->assertFalse($user->fresh()->two_factor_enabled);
+    }
+
     public function test_pending_setup_secret_is_cleared_when_the_ten_minute_expiry_is_reached(): void
     {
         $this->travelTo(Carbon::parse('2026-11-19 10:00:00', 'UTC'));
