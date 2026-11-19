@@ -6,7 +6,6 @@ use App\Enums\Todo\TodoStatus;
 use App\Models\ActivityLog;
 use App\Models\Todo;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\TestCase;
