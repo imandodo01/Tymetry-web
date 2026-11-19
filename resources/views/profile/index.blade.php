@@ -119,16 +119,17 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-6 mb-4">
+        <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 py-3 px-4">
-                    <h6 class="mb-0 fw-semibold text-muted">Two-Factor Authentication</h6>
+                    <h6 class="mb-0 fw-semibold text-muted">Authenticator-based two-factor authentication</h6>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small">
-                        When enabled, signing in requires your password and a one-time code sent to your verified email.
+                        Protect sign-in with a time-based code from an authenticator app. Email verification remains a separate account-verification step.
                     </p>
-                    <p>
+
+                    <p class="mb-3">
                         Email status:
                         @if (auth()->user()->email_verified_at)
                             <span class="badge bg-success">Verified</span>
@@ -137,33 +138,114 @@
                         @endif
                     </p>
 
-                    <form method="POST" action="{{ route('profile.two-factor') }}">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="mb-3">
-                            <label for="two_factor_enabled" class="form-label">Two-factor authentication</label>
-                            <select id="two_factor_enabled" name="two_factor_enabled"
-                                class="form-select @error('two_factor_enabled') is-invalid @enderror">
-                                <option value="0" @selected(!auth()->user()->two_factor_enabled)>Disabled</option>
-                                <option value="1" @selected(auth()->user()->two_factor_enabled)>Enabled</option>
-                            </select>
-                            @error('two_factor_enabled')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+                    @if (auth()->user()->two_factor_enabled && auth()->user()->two_factor_method === 'totp')
+                        <div class="alert alert-success">
+                            Authenticator app is enabled. Use its six-digit code when signing in.
                         </div>
 
-                        <div class="mb-3">
-                            <label for="two_factor_current_password" class="form-label">Confirm current password</label>
-                            <input type="password" id="two_factor_current_password" name="current_password"
-                                class="form-control @error('current_password') is-invalid @enderror" required>
-                            @error('current_password')
-                            <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <form method="POST" action="{{ route('profile.two-factor.recovery-codes') }}" class="mb-4">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="recovery_current_password" class="form-label">Confirm current password to regenerate recovery codes</label>
+                                <input type="password" id="recovery_current_password" name="current_password" class="form-control" required autocomplete="current-password">
+                            </div>
+                            <button type="submit" class="btn btn-outline-dark btn-sm">Regenerate recovery codes</button>
+                        </form>
 
-                        <button type="submit" class="btn btn-dark btn-sm px-4">Save security setting</button>
-                    </form>
+                        <hr>
+
+                        <form method="POST" action="{{ route('profile.two-factor') }}">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="two_factor_enabled" value="0">
+                            <div class="mb-3">
+                                <label for="disable_current_password" class="form-label">Confirm current password to disable MFA</label>
+                                <input type="password" id="disable_current_password" name="current_password" class="form-control" required autocomplete="current-password">
+                            </div>
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Disable authenticator MFA</button>
+                        </form>
+                    @else
+                        @if (auth()->user()->two_factor_enabled && auth()->user()->two_factor_method === 'email')
+                            <div class="alert alert-warning">
+                                This account still uses the previous email-based second factor. It remains active until authenticator setup is confirmed.
+                            </div>
+                        @else
+                            <div class="alert alert-light border">
+                                Authenticator MFA is currently disabled.
+                            </div>
+                        @endif
+
+                        @if ($pendingTotpUri)
+                            <h6 class="fw-semibold">1. Add Tymetry to your authenticator app</h6>
+                            <p class="small text-muted">
+                                Choose manual setup in your authenticator app and enter this secret. Keep it private.
+                            </p>
+                            <div class="mb-3">
+                                <label class="form-label">Account</label>
+                                <input type="text" class="form-control" value="{{ auth()->user()->email }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Setup key</label>
+                                <input type="text" class="form-control font-monospace" value="{{ auth()->user()->two_factor_secret }}" readonly>
+                            </div>
+                            <details class="mb-4">
+                                <summary class="small">Show advanced provisioning URI</summary>
+                                <textarea class="form-control font-monospace mt-2" rows="3" readonly>{{ $pendingTotpUri }}</textarea>
+                            </details>
+
+                            <h6 class="fw-semibold">2. Confirm authenticator setup</h6>
+                            <form method="POST" action="{{ route('profile.two-factor.confirm') }}">
+                                @csrf
+                                <div class="mb-3">
+                                    <label for="totp_confirmation_code" class="form-label">Six-digit code from your authenticator app</label>
+                                    <input type="text" id="totp_confirmation_code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" class="form-control @error('code') is-invalid @enderror" required autocomplete="one-time-code">
+                                    @error('code')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                <button type="submit" class="btn btn-dark btn-sm">Confirm and enable authenticator MFA</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('profile.two-factor.setup') }}">
+                                @csrf
+                                <div class="mb-3">
+                                    <label for="setup_current_password" class="form-label">Confirm current password to start setup</label>
+                                    <input type="password" id="setup_current_password" name="current_password" class="form-control" required autocomplete="current-password">
+                                </div>
+                                <button type="submit" class="btn btn-dark btn-sm">Set up authenticator app</button>
+                            </form>
+                        @endif
+
+                        @if (auth()->user()->two_factor_enabled)
+                            <hr>
+                            <form method="POST" action="{{ route('profile.two-factor') }}">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="two_factor_enabled" value="0">
+                                <div class="mb-3">
+                                    <label for="legacy_disable_current_password" class="form-label">Or disable the existing second factor</label>
+                                    <input type="password" id="legacy_disable_current_password" name="current_password" class="form-control" required autocomplete="current-password">
+                                </div>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Disable email-based MFA</button>
+                            </form>
+                        @endif
+                    @endif
+
+                    @if ($errors->has('two_factor_enabled'))
+                        <div class="alert alert-danger mt-3">{{ $errors->first('two_factor_enabled') }}</div>
+                    @endif
+
+                    @if (session('recovery_codes'))
+                        <div class="alert alert-warning mt-4">
+                            <strong>Save these recovery codes now.</strong>
+                            They are shown only once. Each code can be used once if your authenticator app is unavailable.
+                            <ul class="font-monospace mt-2 mb-0">
+                                @foreach (session('recovery_codes') as $recoveryCode)
+                                    <li>{{ $recoveryCode }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
