@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -17,20 +18,26 @@ class TotpService
 
     public function beginSetup(User $user): string
     {
-        if ($user->two_factor_enabled && $user->two_factor_method === 'totp') {
-            throw new RuntimeException('Disable the current authenticator before replacing it.');
-        }
+        return DB::transaction(function () use ($user): string {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
-        $secret = $this->base32Encode(random_bytes(self::SECRET_BYTES));
+            if ($lockedUser->two_factor_enabled && $lockedUser->two_factor_method === 'totp') {
+                throw new RuntimeException('Disable the current authenticator before replacing it.');
+            }
 
-        $user->forceFill([
-            'two_factor_secret' => $secret,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-            'two_factor_last_used_counter' => null,
-        ])->save();
+            $secret = $this->base32Encode(random_bytes(self::SECRET_BYTES));
 
-        return $secret;
+            $lockedUser->forceFill([
+                'two_factor_secret' => $secret,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'two_factor_last_used_counter' => null,
+            ])->save();
+
+            $this->recordSecurityEvent($lockedUser, 'mfa_setup_started', 'Started authenticator-based MFA enrollment.');
+
+            return $secret;
+        });
     }
 
     public function provisioningUri(User $user, string $secret): string
@@ -97,6 +104,8 @@ class TotpService
                 ),
             ])->save();
 
+            $this->recordSecurityEvent($lockedUser, 'mfa_enabled', 'Enabled authenticator-based MFA.');
+
             return $recoveryCodes;
         });
     }
@@ -121,6 +130,7 @@ class TotpService
 
             if ($counter !== null && ($lastUsedCounter === null || $counter > $lastUsedCounter)) {
                 $lockedUser->forceFill(['two_factor_last_used_counter' => $counter])->save();
+                $this->recordSecurityEvent($lockedUser, 'mfa_totp_verified', 'Completed sign-in using an authenticator code.');
 
                 return true;
             }
@@ -133,6 +143,7 @@ class TotpService
                     $lockedUser->forceFill([
                         'two_factor_recovery_codes' => array_values($recoveryCodes),
                     ])->save();
+                    $this->recordSecurityEvent($lockedUser, 'mfa_recovery_code_used', 'Completed sign-in using a recovery code.');
 
                     return true;
                 }
@@ -165,20 +176,38 @@ class TotpService
                 ),
             ])->save();
 
+            $this->recordSecurityEvent($lockedUser, 'mfa_recovery_codes_regenerated', 'Regenerated authenticator recovery codes.');
+
             return $recoveryCodes;
         });
     }
 
     public function disable(User $user): void
     {
-        $user->forceFill([
-            'two_factor_enabled' => false,
-            'two_factor_method' => null,
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-            'two_factor_last_used_counter' => null,
-        ])->save();
+        DB::transaction(function () use ($user): void {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            $lockedUser->forceFill([
+                'two_factor_enabled' => false,
+                'two_factor_method' => null,
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'two_factor_last_used_counter' => null,
+            ])->save();
+
+            $this->recordSecurityEvent($lockedUser, 'mfa_disabled', 'Disabled multi-factor authentication.');
+        });
+    }
+
+    private function recordSecurityEvent(User $user, string $action, string $description): void
+    {
+        ActivityLog::create([
+            'user_id' => $user->getKey(),
+            'todo_id' => null,
+            'action' => $action,
+            'description' => $description,
+        ]);
     }
 
     private function newRecoveryCodes(): array
