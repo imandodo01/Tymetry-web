@@ -44,6 +44,28 @@ class TotpAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_profile_renders_local_qr_setup_and_manual_key_fallback(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $user->forceFill([
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_setup_expires_at' => now()->addMinutes(10),
+        ])->save();
+
+        $response = $this->actingAs($user)->get(route('profile.index'));
+
+        $response->assertOk()
+            ->assertSee('totp-qr-code', false)
+            ->assertSee('assets/vendor/qrcode/qrcode.min.js')
+            ->assertSee('Manual setup key')
+            ->assertSee('otpauth://totp/', false);
+
+        $this->assertFileExists(public_path('assets/vendor/qrcode/qrcode.min.js'));
+        $this->assertFileExists(public_path('assets/vendor/qrcode/LICENSE'));
+    }
+
     public function test_unverified_email_cannot_start_authenticator_enrollment(): void
     {
         $user = User::factory()->create([
