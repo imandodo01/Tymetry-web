@@ -31,6 +31,8 @@ class TotpServiceTest extends TestCase
         $user = new User();
         $user->setAttribute('email', 'person@example.com');
 
+        config(['app.name' => 'Tymetry']);
+
         $uri = app(TotpService::class)->provisioningUri(
             $user,
             'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'
@@ -38,6 +40,7 @@ class TotpServiceTest extends TestCase
 
         $this->assertStringStartsWith('otpauth://totp/', $uri);
         $this->assertStringContainsString('secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ', $uri);
+        $this->assertStringContainsString('issuer=Tymetry', $uri);
         $this->assertStringContainsString('algorithm=SHA1', $uri);
         $this->assertStringContainsString('digits=6', $uri);
         $this->assertStringContainsString('period=30', $uri);
