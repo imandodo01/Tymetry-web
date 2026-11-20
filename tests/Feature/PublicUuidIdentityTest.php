@@ -60,6 +60,24 @@ class PublicUuidIdentityTest extends TestCase
         $this->assertNotSame((string) $user->getKey(), $user->public_id);
     }
 
+    public function test_uuid_identity_changes_preserve_hidden_encrypted_mfa_attributes(): void
+    {
+        $user = new User();
+        $user->forceFill([
+            'two_factor_secret' => 'BASE32-SECRET',
+            'two_factor_recovery_codes' => ['hashed-recovery-code'],
+        ]);
+
+        $serialized = $user->toArray();
+
+        $this->assertArrayNotHasKey('two_factor_secret', $serialized);
+        $this->assertArrayNotHasKey('two_factor_recovery_codes', $serialized);
+        $this->assertSame('BASE32-SECRET', $user->two_factor_secret);
+        $this->assertSame(['hashed-recovery-code'], $user->two_factor_recovery_codes);
+        $this->assertSame('encrypted', $user->getCasts()['two_factor_secret']);
+        $this->assertSame('encrypted:array', $user->getCasts()['two_factor_recovery_codes']);
+    }
+
     public function test_public_ids_are_unique_across_accounts_and_tasks(): void
     {
         $firstUser = User::factory()->create();
