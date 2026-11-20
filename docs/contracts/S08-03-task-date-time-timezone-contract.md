@@ -1,6 +1,6 @@
 # S08-03 — Task Date, Time, and Timezone Contract
 
-**Status:** Consolidated contract proposal for maintainer confirmation of the remaining implementation-level details.  
+**Status:** Core temporal semantics accepted by maintainer; remaining implementation-level boundaries are documented as open.  
 **Work Item:** TYM-S08-03 — GitHub Issue #44  
 **Work Session:** TYM-WS-20261119-001  
 **Scope:** Temporal semantics for the existing Laravel Web client and the native Android client, and the future shared Task wire representation. This document does not implement an API, persistence migration, reminder, or timezone-preference UI.
@@ -31,6 +31,15 @@ The Sprint 08 source record contains maintainer-approved decisions dated 2026-11
 - **`due_time` is informational metadata only.** It does not affect ordering, dashboard grouping, reminder behavior, or notification scheduling.
 
 These decisions do not authorize an implementation change to `APP_TIMEZONE`, account schema, timezone preference UI, API, or reminder subsystem.
+
+
+### Maintainer confirmation — 2026-11-20
+
+The maintainer confirmed that the account calendar should follow their calendar context, using `Asia/Jakarta` as the default account timezone. This confirms the existing new-account default in this contract; it does not authorize changing Laravel's `APP_TIMEZONE`, migrating existing accounts, or changing UTC instant storage.
+
+The maintainer also confirmed that the Android client remains in the existing `imandodo01/Tymetri` repository; there has been no repository move or replacement. The Android source baseline and its current limitations remain as recorded in section 10. No Android code change is included in S08-03.
+
+No staging environment is available. Real SMTP delivery and manual authenticator-app enrollment therefore remain unverified and must not be represented as acceptance evidence for this contract.
 
 ## 3. Field semantics and representation
 
@@ -385,3 +394,4 @@ No decision is made here to:
 ## 15. Change log
 
 - 2026-11-19: Initial S08-03 date/time/timezone contract proposal consolidated from the current Sprint 08 maintainer decisions and remote source inspection.
+- 2026-11-20: Maintainer confirmed Asia/Jakarta as the account calendar default and confirmed the Android repository remains unchanged; core temporal semantics are accepted, while implementation boundaries remain open.
