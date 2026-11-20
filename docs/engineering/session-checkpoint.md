@@ -85,6 +85,13 @@ PR #48 adds five ActivityLog failure rollback tests for Todo update, archive, re
 - No staging environment is available; real SMTP and manual authenticator app smoke tests are not run.
 - No merge, release, deployment, production configuration change, or database operation was performed.
 
+
+### CI warning detail (exact current heads checked 2026-11-20)
+
+- PR #48 head `3d2f64e4e973161be36cb70e7419d29d2b4906f8`: GitHub Actions conclusion `success`; Vite production build succeeded. PHP test output reported 57 warnings and 1 passed (259 assertions), with warnings caused by tests reading a missing CI `.env` file. The five new rollback tests were present in this run, but warning-heavy output is not a clean verification result.
+- PR #49 head `aab5111e3547f332285fc91f97e88e4828307473`: GitHub Actions conclusion `success`; Vite production build succeeded. PHP test output reported 49 warnings and 1 passed (235 assertions), with the same missing CI `.env` warning pattern.
+- PR #33 contains the CI environment bootstrap fix and its own exact head check passed. The warning-free workflow only applies once that workflow change is part of the tested base; do not transfer PR #33's clean result to other PR heads.
+
 ## Next actions
 
 1. Verify CI for PR #49 against its final head SHA; then review the route removal.
