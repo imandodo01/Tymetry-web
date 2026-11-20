@@ -93,6 +93,126 @@ class ActivityLogAtomicityTest extends TestCase
         $this->assertDatabaseCount('activity_logs', 0);
     }
 
+
+    public function test_todo_update_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create(['title' => 'Original title']);
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->put(route('todo.update', $todo->id), [
+                'title' => 'Changed title',
+                'description' => null,
+                'status' => TodoStatus::Pending->value,
+                'priority' => 1,
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'title' => 'Original title',
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_todo_archive_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create();
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->delete(route('todo.destroy', $todo->id));
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'deleted_at' => null,
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_todo_restore_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create();
+        $todo->delete();
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->post(route('todo.restore', $todo->id));
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'deleted_at' => $todo->getRawOriginal('deleted_at'),
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_todo_completion_toggle_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create([
+            'status' => TodoStatus::Pending,
+            'completed_at' => null,
+        ]);
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->postJson(route('todo.complete', $todo->id));
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'status' => TodoStatus::Pending->value,
+            'completed_at' => null,
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_todo_due_date_update_rolls_back_when_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create([
+            'due_date' => '2026-11-20',
+        ]);
+
+        $this->failActivityLogWrites();
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->patchJson(route('todo.due-date', $todo->id), [
+                'due_date' => '2026-11-21',
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('todos', [
+            'id' => $todo->id,
+            'due_date' => '2026-11-20',
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
     private function failActivityLogWrites(): void
     {
         Event::listen('eloquent.creating: ' . ActivityLog::class, static function (): void {
