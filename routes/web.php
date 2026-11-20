@@ -10,10 +10,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
-Route::get('/sample', function () {
-    return view('sample');
-});
-
 Route::controller(AuthController::class)->name('auth.')->group(function () {
     Route::get('/login', 'index')->name('index');
     Route::post('/login', 'login')->middleware('throttle:5,1')->name('login');
