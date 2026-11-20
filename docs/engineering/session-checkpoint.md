@@ -89,3 +89,14 @@ The warning-free CI bootstrap is isolated in PR #33. Other PRs are based on curr
 ## AI Engineering Standard
 
 Use https://github.com/imandodo01/ai-engineering-standard as the governing standard. Session continuity, checkpoint recovery, multi-environment verification, and dependency preparation workflows are already merged. PR #6 adds reusable MFA security and test guidance. Keep project-specific state in this checkpoint and general engineering rules in the standard.
+
+## 2026-11-20 continuation — ActivityLog rollback coverage
+
+- Reconciled the repository against the 2026-11-19 checkpoint. Current `main` is `6b17019dead029acc1b4e014ccb3e28ead52b751`; implementation PRs #30–#35 remain open, and PRs #45–#47 are also open. No PR was merged during this continuation.
+- Added PR #48, stacked on PR #30, to extend `tests/Feature/ActivityLogAtomicityTest.php` with rollback tests for Todo update, archive, restore, completion toggle, and due-date update when ActivityLog creation fails.
+- PR #48 branch: `test/m0-activity-log-rollback-coverage`; commit: `e17492313543fdddca84a38dabee20baebdda6ef`.
+- GitHub Actions run `44702250514` was observed in progress on the exact PR #48 head SHA. Do not mark verified until its conclusion is checked.
+- Static review found a potential limitation in PR #31: the 30-second cache-lock lease encloses synchronous mail delivery while `config/mail.php` leaves SMTP timeout unset. A slow or stalled transport may outlive the lease; assess/configure a bounded mail timeout and a safely longer lock lease before relying on the lock as full serialization.
+- PR #46 and PR #45 are stacked on the CI bootstrap branch; PR #32 is also stacked on that branch. Reconcile shared User model changes before integrating PR #46 with PR #32 to avoid overwriting MFA casts/hidden attributes or UUID generation behavior.
+- No local checkout was available in this session. Local PHP tests, browser smoke tests, SMTP delivery, production cache behavior, manual TOTP enrollment, and Android builds remain unverified.
+- No merge, deployment, production database operation, or destructive action was performed.
