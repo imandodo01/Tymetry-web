@@ -45,7 +45,8 @@ Acceptance expectations:
 - Commits:
   - `60986b5586dcc11cb304587eec4327ce0a7028b0` — `chore(routes): remove unused sample route`
   - `d2930c65e7c2617c1f933afd307b8601a20c216b` — `chore(views): remove unused sample page`
-- Verification: remote source edits confirmed by GitHub Contents API; CI for this branch is pending PR creation. No local route:list, PHPUnit, frontend build, or browser smoke test was run.
+- PR: [#49 — remove unused sample page](https://github.com/imandodo01/Tymetry-web/pull/49), Draft, targeting main.
+- Verification: remote source edits confirmed by GitHub Contents API; CI started for PR #49 and was in progress at checkpoint refresh. No local route:list, PHPUnit, frontend build, or browser smoke test was run.
 
 ## Active Tymetry Web pull requests
 
@@ -86,7 +87,7 @@ PR #48 adds five ActivityLog failure rollback tests for Todo update, archive, re
 
 ## Next actions
 
-1. Open a focused draft PR for the unused sample route/view removal and verify its CI.
+1. Verify CI for PR #49 against its final head SHA; then review the route removal.
 2. Review PR #48's five rollback tests and reconcile its checkpoint with this current checkpoint.
 3. Continue static review of PR #31's mail timeout/lock lease and PR #32/#46 shared User model integration.
 4. Keep staging-dependent verification explicitly blocked until a safe staging environment is provided; do not substitute production.
