@@ -8,13 +8,21 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable(['name', 'email', 'password', 'two_factor_enabled'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            $user->public_id ??= (string) Str::uuid7();
+        });
+    }
 
     protected function casts(): array
     {
@@ -22,6 +30,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_setup_expires_at' => 'datetime',
+            'two_factor_last_used_counter' => 'integer',
         ];
     }
 
