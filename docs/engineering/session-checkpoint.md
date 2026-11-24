@@ -72,7 +72,7 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 ## Verification evidence
 
 - PR #32: GitHub Actions run #45360675502 passed on exact head `40a19b451e6e6057cf9b101f863debe91f65385b`; 91 tests / 411 assertions; frontend build passed.
-- PR #35: GitHub Actions run #45359643308 passed on the PR merge tree; 64? Do not infer a test count from this note; PR merge commit `696c36e03062d65133cc5eb78f712a71ad617f9a`.
+- PR #35: GitHub Actions run #45359643308 passed on the PR merge tree; 74 tests / 311 assertions; frontend build passed. PR merge commit `696c36e03062d65133cc5eb78f712a71ad617f9a`.
 - PR #46: GitHub Actions run #45361162584 passed on the current main merge tree; 97 tests / 428 assertions; frontend build passed.
 - PR #48: GitHub Actions run #45361479415 passed on exact head `cb7ac75c38b7f44a4709dfada8fb9b9913400453`; 102 tests / 443 assertions; frontend build passed.
 - PR #49's prior run #45359930733 passed against older main `696c36e03062d65133cc5eb78f712a71ad617f9a`; current route reconciliation and checkpoint update require a fresh CI run.
