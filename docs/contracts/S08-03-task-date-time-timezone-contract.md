@@ -1,7 +1,7 @@
 # S08-03 — Task Date, Time, and Timezone Contract
 
 **Status:** Core temporal semantics accepted by maintainer; remaining implementation-level boundaries are documented as open.  
-**Work Item:** TYM-S08-03 — GitHub Issue #44  
+**Tracking:** Standalone S08-03 temporal contract reference; former planning issue retired as not planned.  
 **Work Session:** TYM-WS-20261119-001  
 **Scope:** Temporal semantics for the existing Laravel Web client and the native Android client, and the future shared Task wire representation. This document does not implement an API, persistence migration, reminder, or timezone-preference UI.
 
@@ -340,18 +340,24 @@ Notion: [Sprint 08 — Domain & Cross-Client Contracts](https://app.notion.com/p
 
 Notion: [Tymetry — Architecture & Product Decisions v0.2](https://app.notion.com/p/41c549a7fe038127b104cce8795b76d7), inspected as the architecture baseline. Product-direction statements are not evidence of shipped behavior.
 
-## 11. Unresolved decisions and explicit non-decisions
+## 11. Open implementation decisions — alternatives and consequences
 
-The core decisions listed in section 2 are approved. The following items remain open or belong to another work item:
+The core decisions in section 2 are approved. The items below are implementation/product boundaries for later work; none reopens the approved date-only, wall-clock, UTC-instant, or account-timezone semantics.
 
-1. **Standalone Android local timestamps:** what fields (if any) are required before account linking, their clock source, and whether local timestamps need a separate namespace. The current model has no such fields.
-2. **Timestamp precision:** the canonical wire example uses whole seconds. Whether future API responses preserve milliseconds/microseconds or normalize to seconds needs to be aligned with the API contract and underlying DB precision in S08-04. Consumers must not assume two differently formatted timestamps represent different instants.
-3. **Display override UX:** the approved device-local display override is a capability direction; exact UI/remembered preference behavior is not specified here.
-4. **Timezone-data versioning:** whether synchronized/offline clients need a reported tzdb version for deterministic historical/future local rendering.
-5. **Future reminder semantics:** if date+time later become a scheduled instant, product must decide how to resolve DST gaps and overlaps and whether a timezone is frozen at scheduling time or follows the account preference. This requires a separate product decision.
-6. **API error envelope/status:** validation error shape and HTTP status are owned by S08-04.
-7. **Exact timezone default timing:** `Asia/Jakarta` is approved for newly created accounts. Existing-account migration/backfill timing and behavior must be decided in the account/timezone implementation work; this contract does not change existing records or account settings.
-8. **Web rendering transition:** the current Web app defaults `APP_TIMEZONE` to UTC and has no account timezone column. How/when the Web UI begins using account `time_zone` is a later implementation decision; this document does not flip `APP_TIMEZONE` or claim current Web behavior already follows the approved preference.
+| Open decision | Plausible alternatives | Consequences to evaluate before choosing |
+|---|---|---|
+| Standalone Android local timestamps before account linking | (A) Do not create cloud-style timestamps until account linking. (B) Add explicitly named local-only timestamps with a documented device clock source. (C) Store local events as UTC instants plus a separate local-origin marker. | A avoids false server authority but limits local audit/sort metadata. B is clearer about provenance but needs reconciliation rules. C is interoperable but device clocks may be wrong and must not be mistaken for server time. |
+| Timestamp precision | (A) Normalize all wire timestamps to whole seconds. (B) Preserve fractional seconds supported by the database. | A simplifies cross-client comparisons but discards precision. B preserves more information but requires consistent parsing, serialization, and equality semantics across PHP, Android, SQL, and API layers. |
+| Device-local display override persistence | (A) Apply only for the current screen/session. (B) Persist a per-device display preference. (C) Always display instants in account timezone. | A is simple but not sticky. B improves user control but introduces device-specific settings and UX. C is consistent across clients but does not offer a device-local view. None may mutate the account timezone implicitly. |
+| Timezone database version coordination | (A) Let the server's IANA database be authoritative for account-calendar calculations. (B) Exchange/record tzdb versions for deterministic offline rendering. | A is simpler and keeps one authority, but old offline clients may display future instants differently after timezone-rule updates. B improves reproducibility but adds version negotiation, update, and compatibility complexity. |
+| Future reminder timezone behavior | (A) Freeze the timezone/instant when a reminder is created. (B) Recalculate the scheduled instant when the account timezone changes. (C) Ask the user to resolve ambiguous/nonexistent local times at scheduling time. | A preserves the original instant. B preserves the wall-clock intent but can move the instant. C is explicit for DST gaps/overlaps but adds UI and policy complexity. This decision is required before due date/time can become a reminder instant. |
+| API validation error envelope | (A) Use the existing API error envelope if one is approved in S08-04. (B) Define a dedicated field-error envelope. | Reusing an established envelope reduces client branching. A new envelope can be clearer but creates another contract clients must implement. Exact status codes and shape belong to S08-04. |
+| Existing-account timezone migration | (A) Backfill all existing accounts to `Asia/Jakarta`. (B) Ask existing users to choose a timezone. (C) Use a temporary fallback until the user explicitly chooses. | A is deterministic but may change existing users' calendar grouping. B avoids assumptions but requires migration UX and a completion state. C eases rollout but creates mixed behavior and must have a clear expiry/fallback rule. The approved default for new accounts does not decide existing-account migration. |
+| Web transition from global `APP_TIMEZONE` to account timezone | (A) Switch account-calendar calculations and display per account in one release. (B) Roll out account-aware behavior behind a feature flag while retaining the global default. | A avoids a long mixed-mode period but needs a complete migration and regression suite. B reduces rollout risk but creates temporary dual behavior and requires observability and a removal plan. Neither is authorized by this document alone. |
+
+These alternatives are decision prompts, not recommendations or accepted choices. The responsible product/maintainer decision must be recorded before the relevant implementation begins.
+
+### Explicit non-decisions
 
 No decision is made here to:
 - change `APP_TIMEZONE`;
@@ -363,17 +369,18 @@ No decision is made here to:
 - change date ordering or dashboard grouping rules beyond clarifying their calendar context;
 - implement an API, sync, or migration.
 
-## 12. Acceptance mapping
+## 12. Document completeness review
 
-| Issue #44 acceptance criterion | Result in this deliverable |
+| Review dimension | Result |
 |---|---|
-| Current Web and Android date/time implementations and exact source SHAs are recorded | **Partially met:** remote Web and Android refs/SHAs are recorded; local Git state and local SHAs were not accessible from this execution environment |
-| Each date/time field has an explicit semantic type and serialization/interpretation rule, or is unresolved | **Met:** section 3 defines all current/future temporal fields and separates unresolved local-only behavior |
-| due_date remains calendar-date and due_time informational wall-clock metadata | **Met:** sections 2–3 preserve the approved invariant |
-| Timestamp timezone/storage/display responsibilities documented without changing APP_TIMEZONE | **Met:** section 3.3–3.4 and sections 6/11; no config changed |
-| Boundary, timezone-change, DST scenarios are testable | **Met:** sections 5 and 9 provide concrete examples/scenarios |
-| Open decisions, alternatives, consequences presented for approval | **Met:** section 11 identifies genuinely open implementation/product boundaries and keeps approved decisions closed |
-| Sprint 08 documentation updated with proposal and evidence | **Pending integration:** this document is added to the Web docs branch; the Notion Sprint 08 source page is not overwritten by this GitHub-only change |
+| Current Web and Android source baselines and exact source SHAs recorded | **Documented:** remote refs/SHAs recorded; local Git state and local runtime verification were unavailable |
+| Temporal types and canonical representations | **Documented:** calendar date, wall-clock time, instant, and IANA timezone are distinct |
+| `due_date` and `due_time` invariants | **Documented:** date-only and informational wall-clock semantics are explicit |
+| Timestamp and timezone responsibilities | **Documented:** UTC instant authority, account timezone, and device display override are separated; no config changed |
+| Date boundaries, timezone changes, DST gaps/overlaps | **Documented:** concrete examples and conformance scenarios are included |
+| Remaining implementation decisions | **Documented:** alternatives and consequences are listed without presenting them as accepted decisions |
+| Runtime implementation and cross-client verification | **Not verified:** this is a documentation-only contract; no runtime implementation is claimed |
+| Sprint 08 Notion integration | **Pending:** this GitHub reference is standalone; the Notion Sprint 08 source page has not been changed by this PR |
 
 ## 13. Recommended next steps
 
@@ -395,3 +402,4 @@ No decision is made here to:
 
 - 2026-11-19: Initial S08-03 date/time/timezone contract proposal consolidated from the current Sprint 08 maintainer decisions and remote source inspection.
 - 2026-11-20: Maintainer confirmed Asia/Jakarta as the account calendar default and confirmed the Android repository remains unchanged; core temporal semantics are accepted, while implementation boundaries remain open.
+- 2026-11-24: Retired the old tracking reference and converted the document to a standalone contract; added explicit alternatives and consequences for unresolved implementation decisions.
