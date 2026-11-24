@@ -1,101 +1,92 @@
 # Tymetry Engineering Session Checkpoint
 
-> Updated: 2026-11-20 15:30 Asia/Jakarta  
-> Status: In Progress — implementation PRs open; current maintenance change published for review
+> Updated: 2026-11-24 (Asia/Jakarta)  
+> Status: In Progress — current mainline stabilized; remaining PRs under review
 
 ## Project
 
 - Web repository: https://github.com/imandodo01/Tymetry-web
-- Android repository: https://github.com/imandodo01/Tymetri (same repository; no relocation or repository change)
-- Web default branch: `main`
-- Verified Web main HEAD at recovery: `6b17019dead029acc1b4e014ccb3e28ead52b751`
-- Current work branch: `chore/remove-unused-sample-route`
-- Local checkout / working tree: not available in this session; source inspection and edits were performed through GitHub. Do not infer a local clean state.
+- Android repository: https://github.com/imandodo01/Tymetri
+- Default branch: `main`
+- Verified main HEAD: `696c36e03062d65133cc5eb78f712a71ad617f9a`
+- Local checkout / working-tree state: not available in this remote GitHub session. Do not infer a local clean state.
+- Current checkpoint update is being carried by PR #49; this document is a repository handoff, not proof of local verification.
 
-## Objective and acceptance
+## Objective and working rules
 
-Continue the existing Tymetry audit and implementation without repeating decisions already made.
+Continue the Tymetry implementation and PR audit while preserving the agreed engineering workflow:
 
-Acceptance expectations:
-- Complete straightforward, approved work without pausing for minor decisions.
-- Preserve independent implementation, review, QA, and acceptance responsibilities.
-- Tie verification evidence to exact commit SHAs.
-- Do not merge or deploy automatically.
-- Record only questions that materially require maintainer/product input.
+- Complete clearly scoped implementation without stopping for routine decisions.
+- Keep independent implementation, review, QA, and user acceptance responsibilities distinct.
+- Bind CI and test evidence to exact commit SHAs.
+- Do not merge or deploy automatically without explicit authorization.
+- Do not use production as a substitute for a missing staging environment.
+- Record unverified behavior and unresolved product decisions explicitly.
 
-## Accepted decisions
+## Verified mainline state
 
-1. The unused `/sample` route and its Blade view may be removed.
-2. Account calendar timezone default is `Asia/Jakarta`, following the maintainer's calendar context. This confirms the existing S08-03 contract decision; it does not authorize changing `APP_TIMEZONE` or converting date-only / wall-clock values to UTC.
-3. Temporal semantics remain:
-   - `due_date`: date-only calendar value; preserve unchanged across timezones.
-   - `due_time`: wall-clock metadata only; do not convert into an instant or use for reminders/order.
-   - `created_at`, `updated_at`, `completed_at`: instants serialized as UTC.
-   - `time_zone`: canonical account IANA timezone; new-account default `Asia/Jakarta`.
-4. Android remains at the existing repository `imandodo01/Tymetri`; no repository move or replacement occurred. Its source baseline remains the one documented in PR #47.
-5. No staging environment is available. Real SMTP delivery and manual authenticator-app enrollment cannot currently be performed as staging smoke tests. Do not use production as a substitute.
+The following changes are merged into `main`:
+
+- PR #30 — atomic Todo mutations and ActivityLog writes.
+- PR #31 — OTP challenge concurrency protection.
+- PR #33 — CI environment bootstrap.
+- PR #34 — Todo ownership authorization regression coverage.
+- PR #35 — application-timezone-aware Todo smart ordering.
+
+Latest main HEAD: `696c36e03062d65133cc5eb78f712a71ad617f9a` (PR #35 squash merge).
 
 ## Current change — remove unused sample page
 
 - Branch: `chore/remove-unused-sample-route`
-- Base: `main` at `6b17019dead029acc1b4e014ccb3e28ead52b751`
-- Changes:
-  - Removed the `GET /sample` route from `routes/web.php`.
-  - Deleted `resources/views/sample.blade.php`.
-- Commits:
-  - `60986b5586dcc11cb304587eec4327ce0a7028b0` — `chore(routes): remove unused sample route`
-  - `d2930c65e7c2617c1f933afd307b8601a20c216b` — `chore(views): remove unused sample page`
-- PR: [#49 — remove unused sample page](https://github.com/imandodo01/Tymetry-web/pull/49), Draft, targeting main.
-- Verification: remote source edits confirmed by GitHub Contents API; GitHub Actions passed on code head `aab5111e3547f332285fc91f97e88e4828307473`. PHP output contained missing-`.env` warnings; see CI warning detail below. No local route:list, PHPUnit, frontend build, or browser smoke test was run.
+- PR: [#49 — remove unused sample page](https://github.com/imandodo01/Tymetry-web/pull/49)
+- Current feature head before this checkpoint refresh: `6bd3104b388c9ca5eb64e54e4cfadda453c0b918`
+- Original base: `6b17019dead029acc1b4e014ccb3e28ead52b751`; branch must be synchronized with current `main` before merge.
+- Intended code changes:
+  - Remove `GET /sample` from `routes/web.php`.
+  - Delete `resources/views/sample.blade.php`.
+- Maintainer confirmation that the route is unused and may be removed must remain explicit before merge.
+- Prior CI run #97 passed on exact head `6bd3104b388c9ca5eb64e54e4cfadda453c0b918`, but PHP output had 49 warnings and 1 passed (235 assertions) due to the old CI environment missing `.env`. Frontend build succeeded. This evidence does not verify a refreshed branch or the current mainline.
+- No local route:list, PHPUnit, frontend build, or browser smoke test was run in the prior remote session.
 
-## Active Tymetry Web pull requests
+## Active pull requests — 2026-11-24
 
-All PRs below were observed open on 2026-11-20. GitHub Actions check `PHP tests and frontend build` completed successfully on the recorded code heads. Warning-heavy PHP output is called out separately below.
-
-| PR | Branch | Head SHA | Base | CI |
+| PR | Scope | Head SHA | Base | State / next action |
 |---|---|---|---|---|
-| [#30](https://github.com/imandodo01/Tymetry-web/pull/30) | `fix/m0-atomic-activity-logging` | `bcc2baf4f596e7db0f84060c423fe467c9564679` | `main` | Passed |
-| [#31](https://github.com/imandodo01/Tymetry-web/pull/31) | `fix/otp-concurrency-protection` | `9e3e00790a6c3653b8107d187bceec93f5e43e41` | `main` | Passed |
-| [#32](https://github.com/imandodo01/Tymetry-web/pull/32) | `feat/authenticator-totp` | `52f436bfcad97ccb670156c115c17577ae66b92e` | `chore/ci-test-env-bootstrap` | Passed |
-| [#33](https://github.com/imandodo01/Tymetry-web/pull/33) | `chore/ci-test-env-bootstrap` | `6120921b4c0050270c1db7266079fb454324db72` | `main` | Passed |
-| [#34](https://github.com/imandodo01/Tymetry-web/pull/34) | `test/security-todo-ownership-coverage` | `d3795cc96d614693e8df8c6be80f4b96714f8b6` | `main` | Passed |
-| [#35](https://github.com/imandodo01/Tymetry-web/pull/35) | `fix/timezone-smart-order-date` | `a5b2c3b6a6108f1a81629377586337a24fe4620c` | `main` | Passed |
-| [#45](https://github.com/imandodo01/Tymetry-web/pull/45) | `fix/task-input-normalization` | `9a61d868df793f611bfbc8d22246e6c42ae163ac` | `chore/ci-test-env-bootstrap` | Passed |
-| [#46](https://github.com/imandodo01/Tymetry-web/pull/46) | `feat/public-uuidv7-identifiers` | `45037c7103974d0f6e20a607d7002674db864839` | `chore/ci-test-env-bootstrap` | Passed |
-| [#47](https://github.com/imandodo01/Tymetry-web/pull/47) | `docs/s08-03-date-time-timezone-contract` | `5e103a7e208f0e42cc6d5995ae4e3dbb2154aca8` | `main` | Passed |
-| [#48](https://github.com/imandodo01/Tymetry-web/pull/48) | `test/m0-activity-log-rollback-coverage` | `137ed77d5ec6abb889622915ff878d4fd2cbdb0b` | `fix/m0-atomic-activity-logging` | Passed |
+| [#32](https://github.com/imandodo01/Tymetry-web/pull/32) | TOTP MFA | `52f436bfcad97ccb670156c115c17577ae66b92e` | `main` | Open; account-keyed failed-attempt limiting remains a security gap before production readiness; rerun CI on current base |
+| [#45](https://github.com/imandodo01/Tymetry-web/pull/45) | Task input normalization | `9a61d868df793f611bfbc8d22246e6c42ae163ac` | `main` | Draft; remove/refresh stale checkpoint and rerun CI |
+| [#46](https://github.com/imandodo01/Tymetry-web/pull/46) | UUIDv7 public identities | `9852e7778b222399bbf9f272df58e5b4d28324d8` | `main` | Draft; add update-immutability guard/tests and migration backfill coverage; coordinate with #32 and #35 |
+| [#47](https://github.com/imandodo01/Tymetry-web/pull/47) | Date/time/timezone contract documentation | `38cc794e62ebdc180ab74a04a8bcbb9ae33c239b` | `main` | Open; standalone proposal; acceptance gap for alternatives/consequences remains |
+| [#48](https://github.com/imandodo01/Tymetry-web/pull/48) | ActivityLog rollback tests | `db0f17585d9216cb97e93901ef4e7e3b968d483c` | `main` | Draft; rerun CI on current base and inspect checkpoint freshness |
+| [#49](https://github.com/imandodo01/Tymetry-web/pull/49) | Remove unused sample route/view | `6bd3104b388c9ca5eb64e54e4cfadda453c0b918` | `main` | Draft; synchronize with main, refresh this checkpoint, obtain/confirm route-removal acceptance, rerun CI |
 
-PR #48 adds five ActivityLog failure rollback tests for Todo update, archive, restore, completion toggle, and due-date update. Its test file is stacked on PR #30; PR #48 should be reviewed/integrated only after its base work is available.
+PR #34 and #35 are merged and therefore are not active PRs. PR #30, #31, and #33 are also merged.
 
-## Review findings and follow-up
+## Review findings and operational limitations
 
-1. **OTP concurrency — PR #31:** cache lock uses a 30-second lease while synchronous mail delivery is inside the critical section and SMTP timeout is unset in `config/mail.php`. A slow/stalled transport may outlive the lock lease. Review bounded SMTP timeout and lock lease relationship before production readiness.
-2. **MFA and UUIDv7 — PR #32 / #46:** the shared `User` model regression is addressed on PR #46. Its current code head `9852e7778b222399bbf9f272df58e5b4d28324d8` preserves encrypted TOTP casts and hidden secret/recovery attributes, with a regression test. CI passed (55 tests, 248 assertions). Keep PR #32 / #46 changes coordinated during integration.
-3. **Timezone — PR #35 / #47:** PR #35 aligns ordering to configured Laravel application timezone. PR #47 defines account timezone semantics and confirms `Asia/Jakarta` for new accounts. Account-aware calendar behavior is not yet implemented; do not treat the documentation contract as shipped behavior.
-4. **Staging gap:** no staging environment exists. SMTP delivery, manual TOTP enrollment/recovery, and production cache-driver behavior remain unverified operationally. CI/unit coverage does not replace those smoke tests.
-5. **Dependency maintenance:** branch `chore/m0-dependency-maintenance` was previously found incompatible because its Composer lock resolves Symfony 8.1 components requiring PHP >=8.4.1 while the project contract/CI target PHP 8.3. Keep blocked until lockfile is regenerated for the supported runtime and verified.
-6. **PR #48 checkpoint:** its checkpoint file has been reconciled to the current session record. Keep the PR stacked on PR #30 until the base work is integrated.
+1. **TOTP MFA — PR #32:** implementation has encrypted TOTP secrets, hashed one-time recovery codes, replay prevention, legacy email-MFA preservation, and enrollment/disable/recovery flows. The failed-attempt throttle is IP-based; add account-keyed abuse protection and tests before production readiness.
+2. **Timezone — PR #35 / #47:** PR #35 is merged and uses the Laravel application date for smart ordering. PR #47 is a standalone contract proposal, not shipped account-aware timezone behavior. Its acceptance criterion for open decisions, alternatives, and consequences needs a systematic mapping or explicit maintainer waiver.
+3. **UUIDv7 — PR #46:** add explicit immutability protection for existing User and Todo public IDs if immutability remains the contract, and test migration backfill for pre-existing records. Integrate with #32 and #35 carefully because they touch shared models.
+4. **ActivityLog rollback — PR #48:** retargeted to `main`; verify its tests against the current merged atomic mutation implementation.
+5. **Task normalization — PR #45:** implementation is straightforward, but remove or refresh its stale checkpoint content before review.
+6. **Sample route — PR #49:** route/view removal is isolated, but maintainer confirmation remains a merge gate unless already explicitly recorded elsewhere.
+7. **Staging gap:** no staging environment is available. Real SMTP delivery, manual authenticator-app enrollment/recovery, and production cache-driver behavior remain operationally unverified. Do not use production as a substitute.
+8. **Dependency maintenance:** keep the previous dependency-maintenance branch blocked until Composer lockfile compatibility is restored for the project's declared PHP `^8.3` runtime and CI verifies a clean install.
 
 ## Verification evidence
 
-- GitHub Actions checks queried for PR #30–#35 and #45–#48; all returned completed / success on the exact SHAs in the table.
-- PR #47 is documentation-only; its CI also passed.
-- Current sample-removal branch has not yet run CI.
-- No local checkout was available; no local PHPUnit, lint, frontend build, Android build, or browser/device test was executed in this session.
-- No staging environment is available; real SMTP and manual authenticator app smoke tests are not run.
-- No merge, release, deployment, production configuration change, or database operation was performed.
-
-
-### CI warning detail (exact current heads checked 2026-11-20)
-
-- PR #48 code head `3d2f64e4e973161be36cb70e7419d29d2b4906f8`: GitHub Actions conclusion `success`; Vite production build succeeded. PHP test output reported 57 warnings and 1 passed (259 assertions), with warnings caused by tests reading a missing CI `.env` file. The five new rollback tests were present in this run, but warning-heavy output is not a clean verification result. Later commits on this branch only synchronized the checkpoint.
-- PR #49 code head `aab5111e3547f332285fc91f97e88e4828307473`: GitHub Actions conclusion `success`; Vite production build succeeded. PHP test output reported 49 warnings and 1 passed (235 assertions), with the same missing CI `.env` warning pattern. Later commits on this branch only synchronized the checkpoint.
-- PR #33 contains the CI environment bootstrap fix and its own exact head check passed. The warning-free workflow only applies once that workflow change is part of the tested base; do not transfer PR #33's clean result to other PR heads.
+- PR #34: CI passed on exact PR head before merge; squash merge commit `9e5db48ad3d267ea0c1cd70defa5db7a11d218f8`.
+- PR #35: updated regression test CI passed on merge-parent head `f6009e4bd9dc911bb689f53dde477559a6f1dd3c` (run #45359643308); PR squash merge commit `696c36e03062d65133cc5eb78f712a71ad617f9a).
+- PR #35 test now derives SQLite's current database date, freezes application time in `Pacific/Kiritimati` on the next local date, and uses priority/date values that make the old database-date implementation return a different order.
+- PR #32/#45/#46/#47/#48/#49 need current-head/current-base CI and review as listed above.
+- No local PHP tests, browser/device tests, or staging smoke tests were executed in this remote session.
+- No deployment or production data/configuration operation was performed.
 
 ## Next actions
 
-1. Recheck CI on the latest checkpoint-only heads of PR #48 and PR #49; then review the route removal and rollback tests.
-2. Review PR #46 with PR #32 and preserve the now-tested MFA model compatibility.
-3. Continue static review of PR #31's mail timeout/lock lease and PR #32/#46 shared User model integration.
-4. Keep staging-dependent verification explicitly blocked until a safe staging environment is provided; do not substitute production.
-5. Review PRs and merge only through the agreed human review/acceptance workflow.
+1. Finish PR #49 checkpoint refresh, synchronize its branch with current `main`, and rerun CI. Keep merge blocked until route-removal confirmation is explicit.
+2. Reconcile PR #32 and #46 security/model changes; complete account-keyed TOTP attempt protection before production readiness.
+3. Add the missing immutability and migration-backfill tests to PR #46.
+4. Remove/refresh stale checkpoint content in PR #45 and rerun CI.
+5. Verify PR #48 rollback tests against current main and rerun CI.
+6. Resolve PR #47's alternatives/consequences acceptance gap or record an explicit maintainer waiver before merge.
+7. Re-run combined verification after each integration; keep evidence tied to exact SHAs.
