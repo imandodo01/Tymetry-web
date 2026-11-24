@@ -107,7 +107,7 @@ Remote source inspection of `imandodo01/Tymetry-web` confirms:
 
 The database types establish storage shape but do not by themselves define API serialization or account-timezone behavior. In particular, SQL `DATE`/`TIME` values must remain date-only/time-only at the application boundary; do not pass either through a timezone conversion.
 
-**Ordering implementation status at the inspected base SHA:** the current `main` version of `Todo::scopeSmartOrder()` still compares `due_date` with database `CURRENT_DATE` (Todo model blob `33d659d1e3a1f693b0b0287eea76ecda5dceb110`). A separate, still-open PR [#35](https://github.com/imandodo01/Tymetry-web/pull/35) at head `a5b2c3b6a6108f1a81629377586337a24fe4620c` proposes replacing this with `now()->toDateString()`, which uses the configured Laravel application timezone. That PR is not part of this document's base `main` SHA and must not be described as merged or deployed. Even if PR #35 is integrated, it aligns ordering with `APP_TIMEZONE`; it does not by itself implement the approved account-level `time_zone` preference. Account-timezone-aware date grouping remains a separate implementation step.
+**Ordering implementation status:** the historical Web source snapshot inspected for this contract (`6b17019dead029acc1b4e014ccb3e28ead52b751`) used database `CURRENT_DATE` in `Todo::scopeSmartOrder()` (Todo model blob `33d659d1e3a1f693b0b0287eea76ecda5dceb110`). PR [#35](https://github.com/imandodo01/Tymetry-web/pull/35) was subsequently merged on 2026-11-24. Current `main` now uses `now()->toDateString()`, aligning smart ordering with the configured Laravel application timezone. This does **not** implement the approved account-level `time_zone` preference; account-timezone-aware date grouping remains a separate implementation step.
 
 ### 4.2 Native Android — current implementation facts
 
@@ -303,7 +303,7 @@ All refs below are remote source inspection, not local checkout or runtime execu
 ### Web repository
 
 Repository: [imandodo01/Tymetry-web](https://github.com/imandodo01/Tymetry-web)  
-Remote `main` source snapshot used for this task: **`6b17019dead029acc1b4e014ccb3e28ead52b751`** (tree `6b17019dead029acc1b4e014ccb3e28ead52b751`).
+Historical `main` source snapshot inspected on 2026-11-19: **`6b17019dead029acc1b4e014ccb3e28ead52b751`**. Current `main` at this document update: **`4f0570e60fb8a50c7a3008521a092c45a3f07947`**. The table below records source blobs from the historical inspection snapshot; later merged behavior is called out separately where relevant.
 
 | Source | Blob SHA | Evidence |
 |---|---|---|
@@ -404,3 +404,4 @@ No decision is made here to:
 - 2026-11-20: Maintainer confirmed Asia/Jakarta as the account calendar default and confirmed the Android repository remains unchanged; core temporal semantics are accepted, while implementation boundaries remain open.
 - 2026-11-24: Retired the old tracking reference and converted the document to a standalone contract; added explicit alternatives and consequences for unresolved implementation decisions.
 - 2026-11-24: Synchronized the standalone contract branch with main after PR #45 merged; temporal semantics unchanged.
+- 2026-11-24: Updated the Web ordering status after PR #35 merged; the account-level timezone contract remains unimplemented.
