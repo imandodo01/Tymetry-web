@@ -8,6 +8,7 @@ use App\Services\Auth\OtpService;
 use App\Services\Auth\TotpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use RuntimeException;
 use Throwable;
 
@@ -61,12 +62,30 @@ class OtpController extends Controller
             return redirect()->route('auth.index');
         }
 
+        $totpAttemptKey = $purpose === 'totp'
+            ? 'totp-login:' . $user->getKey()
+            : null;
+
+        if ($totpAttemptKey !== null && RateLimiter::tooManyAttempts($totpAttemptKey, 5)) {
+            return back()->withErrors([
+                'code' => 'Too many invalid authenticator attempts. Please wait before trying again.',
+            ]);
+        }
+
         $verified = $purpose === 'totp'
             ? $totp->verifyLogin($user, $validated['code'])
             : $otp->verify($user, $purpose, $validated['code']);
 
         if (!$verified) {
+            if ($totpAttemptKey !== null) {
+                RateLimiter::hit($totpAttemptKey, 60);
+            }
+
             return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
+        }
+
+        if ($totpAttemptKey !== null) {
+            RateLimiter::clear($totpAttemptKey);
         }
 
         if ($purpose === 'email_verification') {
