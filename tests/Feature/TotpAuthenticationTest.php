@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Mockery;
 use Tests\TestCase;
 
@@ -183,6 +184,10 @@ class TotpAuthenticationTest extends TestCase
             'two_factor_confirmed_at' => now(),
         ])->save();
 
+        $attemptKey = 'totp-login:' . $user->getKey();
+        RateLimiter::hit($attemptKey, 60);
+        RateLimiter::hit($attemptKey, 60);
+
         $otp = Mockery::mock(OtpService::class);
         $otp->shouldNotReceive('send');
         $this->app->instance(OtpService::class, $otp);
@@ -200,10 +205,51 @@ class TotpAuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
+        $this->assertSame(0, RateLimiter::attempts($attemptKey));
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $user->id,
             'action' => 'mfa_totp_verified',
         ]);
+    }
+
+    public function test_totp_login_attempts_are_limited_per_account_across_ip_addresses(): void
+    {
+        $this->travelTo(Carbon::createFromTimestamp(59, 'UTC'));
+
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            'two_factor_enabled' => true,
+        ]);
+        $user->forceFill([
+            'two_factor_method' => 'totp',
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+
+        $attemptKey = 'totp-login:' . $user->getKey();
+        RateLimiter::clear($attemptKey);
+        $pendingSession = [
+            'pending_auth_user_id' => $user->getKey(),
+            'pending_auth_purpose' => 'totp',
+        ];
+
+        foreach (range(1, 5) as $ipSuffix) {
+            $this->withSession($pendingSession)
+                ->withServerVariables(['REMOTE_ADDR' => "198.51.100.{$ipSuffix}"])
+                ->post(route('otp.verify'), ['code' => '000000'])
+                ->assertSessionHasErrors('code');
+        }
+
+        $this->withSession($pendingSession)
+            ->withServerVariables(['REMOTE_ADDR' => '198.51.100.10'])
+            ->post(route('otp.verify'), ['code' => '000000'])
+            ->assertSessionHasErrors('code')
+            ->assertSessionHasErrors([
+                'code' => 'Too many invalid authenticator attempts. Please wait before trying again.',
+            ]);
+
+        $this->assertSame(5, RateLimiter::attempts($attemptKey));
+        $this->assertGuest();
     }
 
     public function test_incomplete_totp_enrollment_cannot_authenticate(): void
