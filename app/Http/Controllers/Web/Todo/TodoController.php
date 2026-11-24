@@ -63,23 +63,6 @@ class TodoController extends Controller
                             </button>
                         </form>
                     </div>';
-                    // return '
-                    //     <div class="d-flex justify-content-center gap-2">
-                    //         <button class="btn btn-sm btn-outline-dark editTodoBtn" data-id=' . $row->id . '>
-                    //             <i class="bi bi-pencil-square me-2"></i>
-                    //         </button>
-                    //         <form method="POST"
-                    //             action="' . route('todo.destroy', $row->id) . '"
-                    //             onsubmit="return confirm(\'Archive this todo?\')">
-                    //             ' . csrf_field() . '
-                    //             ' . method_field('DELETE') . '
-                    //             <button type="submit"
-                    //                 class="btn btn-sm btn-outline-secondary">
-                    //                 <i class="bi bi-archive me-2"></i>
-                    //             </button>
-                    //         </form>
-                    //     </div>
-                    // ';
                 })->addColumn('status_action', function ($row) {
                     $html = '<select class="form-select form-select-sm todo-status" data-id="' . $row->id . '" aria-label="Change status for task: ' . e($row->title) . '">';
                     foreach (TodoStatus::cases() as $status) {
@@ -126,11 +109,9 @@ class TodoController extends Controller
 
     public function store(TodoRequest $request)
     {
-        $todo = auth()->user()->todos()->create($request->validated());
-
-        ActivityLog::add(
+        $this->mutateWithActivity(
+            fn (): Todo => auth()->user()->todos()->create($request->validated()),
             'created',
-            $todo,
             'Created a new todo'
         );
 
@@ -151,14 +132,12 @@ class TodoController extends Controller
 
     public function update(TodoRequest $request, $id)
     {
-        $todo = auth()->user()->todos()->findOrFail($id);
+        $this->mutateWithActivity(function () use ($request, $id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->update($request->validated());
 
-        $todo->update($request->validated());
-        ActivityLog::add(
-            'update',
-            $todo,
-            'Updated todo'
-        );
+            return $todo;
+        }, 'update', 'Updated todo');
 
         return redirect()
             ->route('todo.index')
@@ -167,17 +146,12 @@ class TodoController extends Controller
 
     public function destroy($id)
     {
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
+        $this->mutateWithActivity(function () use ($id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->delete();
 
-        ActivityLog::add(
-            'archived',
-            $todo,
-            'Archived a todo'
-        );
-
-        $todo->delete();
+            return $todo;
+        }, 'archived', 'Archived a todo');
 
         return redirect()
             ->route('todo.index')
@@ -190,23 +164,14 @@ class TodoController extends Controller
             'status' => ['required', 'integer', Rule::in(array_map(fn (TodoStatus $status) => $status->value, TodoStatus::cases()))],
         ]);
 
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
+        $this->mutateWithActivity(function () use ($validated, $id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->update(['status' => $validated['status']]);
 
-        $todo->update([
-            'status' => $validated['status'],
-        ]);
+            return $todo;
+        }, 'status_updated', 'Updated todo status');
 
-        ActivityLog::add(
-            'status_updated',
-            $todo,
-            'Updated todo status'
-        );
-
-        return response()->json([
-            'success' => true
-        ]);
+        return response()->json(['success' => true]);
     }
 
     public function archive()
@@ -222,17 +187,15 @@ class TodoController extends Controller
 
     public function restore($id)
     {
-        $todo = Todo::onlyTrashed()
-            ->where('user_id', auth()->id())
-            ->findOrFail($id);
+        $this->mutateWithActivity(function () use ($id): Todo {
+            $todo = Todo::onlyTrashed()
+                ->where('user_id', auth()->id())
+                ->findOrFail($id);
 
-        $todo->restore();
+            $todo->restore();
 
-        ActivityLog::add(
-            'restored',
-            $todo,
-            'Restored archived todo'
-        );
+            return $todo;
+        }, 'restored', 'Restored archived todo');
 
         return redirect()
             ->route('todo.archive')
@@ -262,6 +225,7 @@ class TodoController extends Controller
 
         return response()->json(['success' => true]);
     }
+
     public function bulkArchive(Request $request)
     {
         $validated = $request->validate([
@@ -282,12 +246,14 @@ class TodoController extends Controller
 
         return response()->json(['success' => true]);
     }
+
     public function bulkRestore(Request $request)
     {
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer', 'distinct'],
         ]);
+
         DB::transaction(function () use ($validated) {
             $todos = Todo::onlyTrashed()
                 ->whereIn('id', $validated['ids'])
@@ -306,72 +272,68 @@ class TodoController extends Controller
         });
 
         session()->flash('status', 'Selected todos restored successfully.');
-        return response()->json([
-            'success' => true,
-        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function toggleComplete($id)
     {
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
+        $this->mutateWithActivity(function () use ($id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $isCompleting = $todo->status !== TodoStatus::Done;
+            $todo->status = $isCompleting ? TodoStatus::Done : TodoStatus::Pending;
+            $todo->save();
 
-        $isCompleting = $todo->status !== TodoStatus::Done;
-        $todo->status = $isCompleting ? TodoStatus::Done : TodoStatus::Pending;
-        $todo->save();
-
-        ActivityLog::add('status_updated', $todo, 'Updated completion status');
+            return $todo;
+        }, 'status_updated', 'Updated completion status');
 
         return response()->json(['success' => true]);
     }
+
     public function updatePriority(Request $request, $id)
     {
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
-
-        abort_if($todo->user_id !== auth()->id(), 403);
-
         $validated = $request->validate([
-            'priority' => ['required', 'integer', Rule::in(array_map(fn (TodoPriority $priority) => $priority->value, TodoPriority::cases()))]
+            'priority' => ['required', 'integer', Rule::in(array_map(fn (TodoPriority $priority) => $priority->value, TodoPriority::cases()))],
         ]);
 
-        $todo->update([
-            'priority' => $validated['priority']
-        ]);
+        $this->mutateWithActivity(function () use ($validated, $id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->update(['priority' => $validated['priority']]);
 
-        return response()->json([
-            'success' => true
-        ]);
+            return $todo;
+        }, 'priority_updated', 'Updated todo priority');
+
+        return response()->json(['success' => true]);
     }
+
     public function updateDueDate(Request $request, $id)
     {
-        $todo = auth()->user()
-            ->todos()
-            ->findOrFail($id);
-
-        abort_if($todo->user_id !== auth()->id(), 403);
-
         $validated = $request->validate([
-            'due_date' => [
-                'nullable',
-                'date'
-            ]
+            'due_date' => ['nullable', 'date'],
         ]);
 
-        $todo->update([
-            'due_date' => $validated['due_date'],
-        ]);
+        $this->mutateWithActivity(function () use ($validated, $id): Todo {
+            $todo = auth()->user()->todos()->findOrFail($id);
+            $todo->update(['due_date' => $validated['due_date']]);
 
-        ActivityLog::add(
-            'due_date_updated',
-            $todo,
-            'Updated todo due date'
-        );
+            return $todo;
+        }, 'due_date_updated', 'Updated todo due date');
 
-        return response()->json([
-            'success' => true
-        ]);
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Execute a todo mutation and its activity log write in one database transaction.
+     *
+     * @param callable(): Todo $mutation
+     */
+    private function mutateWithActivity(callable $mutation, string $action, string $description): Todo
+    {
+        return DB::transaction(function () use ($mutation, $action, $description): Todo {
+            $todo = $mutation();
+            ActivityLog::add($action, $todo, $description);
+
+            return $todo;
+        });
     }
 }
