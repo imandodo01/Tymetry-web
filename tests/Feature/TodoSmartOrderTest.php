@@ -7,7 +7,7 @@ use App\Enums\Todo\TodoStatus;
 use App\Models\Todo;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
