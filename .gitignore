@@ -28,3 +28,6 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Temporary PHPUnit SQLite database
+/tymetri_pr31_test
