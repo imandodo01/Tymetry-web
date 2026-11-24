@@ -68,5 +68,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', 'password')->name('password');
 
         Route::put('/two-factor', 'twoFactor')->name('two-factor');
+        Route::post('/two-factor/setup', 'twoFactorSetup')->middleware('throttle:3,1')->name('two-factor.setup');
+        Route::post('/two-factor/confirm', 'twoFactorConfirm')->middleware('throttle:5,1')->name('two-factor.confirm');
+        Route::post('/two-factor/recovery-codes', 'twoFactorRecoveryCodes')->middleware('throttle:3,1')->name('two-factor.recovery-codes');
     });
 });
