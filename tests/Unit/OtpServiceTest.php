@@ -130,7 +130,7 @@ class OtpServiceTest extends TestCase
     public function test_send_does_not_overwrite_a_challenge_while_its_lock_is_held(): void
     {
         $user = $this->makeUser();
-        $lock = Cache::lock($this->lockKey($user, 'email_verification'), 30);
+        $lock = Cache::lock($this->lockKey($user, 'email_verification'), 120);
 
         $this->assertTrue($lock->get());
 
@@ -161,6 +161,11 @@ class OtpServiceTest extends TestCase
 
         $this->assertNotNull($this->sentCode);
         $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
+    }
+
+    public function test_smtp_mailer_uses_a_finite_socket_timeout(): void
+    {
+        $this->assertGreaterThan(0, (int) config('mail.mailers.smtp.timeout'));
     }
 
     public function test_unsupported_otp_purpose_is_rejected(): void

@@ -12,7 +12,7 @@ use Throwable;
 
 class OtpService
 {
-    private const LOCK_SECONDS = 30;
+    private const LOCK_SECONDS = 120;
 
     public function send(User $user, string $purpose): void
     {
