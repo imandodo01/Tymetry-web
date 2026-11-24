@@ -1,91 +1,87 @@
-# Session Checkpoint
+# Tymetry Engineering Session Checkpoint
 
-> Updated: 2026-11-19 (Asia/Jakarta)  
-> Status: In Progress — implementation PRs open for review
+> Updated: 2026-11-24 (Asia/Jakarta)  
+> Status: In Progress — current mainline synchronized; remaining PRs under review
 
 ## Project
 
-- Repository: https://github.com/imandodo01/Tymetry-web
-- Target branch: main
-- Checkpoint branch: fix/m0-atomic-activity-logging
-- Checkpoint pull request: https://github.com/imandodo01/Tymetry-web/pull/30
-- Base commit: bd8347d71b2af153215f91fc455cb40a4e783bc1
-- Local working-tree state: not inspected; all work in this session was performed through GitHub branches and PRs.
+- Web repository: https://github.com/imandodo01/Tymetry-web
+- Android repository: https://github.com/imandodo01/Tymetri
+- Default branch: `main`
+- Verified main HEAD at refresh: `696abc7a7341972256b5eec4d03a7372edd838ae`
+- Local checkout / working-tree state: not available in this remote GitHub session. Do not infer local cleanliness.
+- This file is a repository handoff checkpoint; Notion page **Tymetry Check List** remains the cross-chat checklist.
 
-## Completed in this session
+## Working rules
 
-- Recovered the current repository baseline and inspected project instructions, relevant AI Engineering Standard policies, source, tests, and Git state.
-- PR #30: atomic Todo mutations and Activity Log writes; rollback regression tests for create and status updates; refreshed this checkpoint. CI run #66 passed.
-- PR #31: serialize OTP send/verify/clear with cache locks; enforce cooldown and attempt limits; test one-time verification, expiry, resend, lock contention, database cache store, and outbound email recipient/subject. CI run #65 passed.
-- PR #32: RFC 6238 authenticator-based TOTP MFA, encrypted secrets, hashed one-time recovery codes, replay prevention, legacy email-MFA migration, enrollment/disable/recovery flows, and atomic security audit events. CI run #64 passed.
-- PR #33: create .env from .env.example in CI before Laravel checks. CI run #57 passed with 50 tests, 235 assertions, and zero warnings.
-- PR #34: negative ownership tests for Todo edit/update/archive/status/completion/priority/due-date endpoints, archive listing, and AJAX index. CI run #58 passed.
-- PR #35: align Todo smart ordering with the configured application date instead of database CURRENT_DATE. CI run #67 passed.
-- AI Engineering Standard PR #6: added generic MFA security and verification guidance covering encrypted TOTP secrets, replay protection, recovery codes, rate limits, audit events, and safe factor migration.
-- No PR was merged and no production environment or data was changed.
+- Complete clearly scoped implementation without stopping for routine decisions.
+- Keep implementation, independent review, QA, and maintainer acceptance responsibilities distinct.
+- Bind CI/test evidence to exact commit SHAs and the tested PR merge tree.
+- Do not merge or deploy automatically unless the maintainer has authorized it.
+- Do not use production as a substitute for a missing staging environment.
+- Record unverified behavior and unresolved product decisions explicitly.
 
-## Active pull requests
+## Verified mainline state
 
-| Repository | PR | Branch | Head SHA | State |
-|---|---|---|---|---|
-| Tymetry-web | [#30](https://github.com/imandodo01/Tymetry-web/pull/30) | fix/m0-atomic-activity-logging | 8da381d0e3b1ccdad234e9257a456893238d049b | Ready for review; CI #66 passed |
-| Tymetry-web | [#31](https://github.com/imandodo01/Tymetry-web/pull/31) | fix/otp-concurrency-protection | 28843a4ab05ee457450884da41a106b070247e81 | Ready for review; CI #65 passed |
-| Tymetry-web | [#32](https://github.com/imandodo01/Tymetry-web/pull/32) | feat/authenticator-totp | a0d6f4dc438d8444f2f1f91c9e28f3b2c3d65632 | Ready for review; CI #64 passed |
-| Tymetry-web | [#33](https://github.com/imandodo01/Tymetry-web/pull/33) | chore/ci-test-env-bootstrap | 6120921b4c0050270c1db7266079fb454324db72 | Ready for review; CI #57 passed, zero warnings |
-| Tymetry-web | [#34](https://github.com/imandodo01/Tymetry-web/pull/34) | test/security-todo-ownership-coverage | 591d589d68e328d92e5f8851087053fd57ac5684 | Ready for review; CI #58 passed |
-| Tymetry-web | [#35](https://github.com/imandodo01/Tymetry-web/pull/35) | fix/timezone-smart-order-date | a5b2c3b6a6108f1a81629377586337a24fe4620c | Ready for review; CI #67 passed |
-| AI Engineering Standard | [#6](https://github.com/imandodo01/ai-engineering-standard/pull/6) | feat/security-mfa-guidance | 39bb4a546f20da8c3522c8a41c3bd2829a05c0ec | Ready for review; documentation-only |
+Merged into `main`:
 
-## Verification
+- PR #30 — atomic Todo mutations and ActivityLog writes.
+- PR #31 — OTP challenge concurrency protection.
+- PR #32 — authenticator-based TOTP MFA, account-keyed failed-attempt limiting, and recovery-code input support.
+- PR #33 — CI environment bootstrap.
+- PR #34 — Todo ownership authorization regression tests.
+- PR #35 — application-timezone-aware Todo smart ordering and discriminating regression coverage.
+- PR #46 — UUIDv7 public identities, update immutability, and migration backfill tests.
+- PR #48 — ActivityLog rollback regression coverage.
 
-| Check | Result |
-|---|---|
-| PR #30 CI | Passed, run #66; 241 assertions; missing-.env warnings |
-| PR #31 CI | Passed, run #65; 271 assertions; missing-.env warnings |
-| PR #32 CI | Passed, run #64; 292 assertions; missing-.env warnings |
-| PR #33 CI | Passed, run #57; 50 tests, 235 assertions, zero warnings |
-| PR #34 CI | Passed, run #58; 259 assertions; missing-.env warnings |
-| PR #35 CI | Passed, run #67; 236 assertions; missing-.env warnings |
-| AI Engineering Standard PR #6 | Diff read back; documentation-only, no test/lint command run |
-| Local PHP test suite | Not run in this session |
-| Browser / manual smoke tests | Not run |
-| Real SMTP delivery | Not verified |
-| Manual authenticator-app enrollment | Not performed |
-| Production MySQL cache-lock behavior | SQLite database-cache lock path tested; production environment not tested |
+Latest main HEAD: `696abc7a7341972256b5eec4d03a7372edd838ae` (PR #48 squash merge).
 
-The warning-free CI bootstrap is isolated in PR #33. Other PRs are based on current main, so their workflow runs still use the old CI workflow until PR #33 is merged.
+## Current change — remove unused sample page
 
-## Current findings / follow-up
+- Branch: `chore/remove-unused-sample-route`
+- PR: [#49 — remove unused sample page](https://github.com/imandodo01/Tymetry-web/pull/49)
+- Changes:
+  - Remove `GET /sample` from `routes/web.php`.
+  - Delete `resources/views/sample.blade.php`.
+  - Refresh this checkpoint with current mainline and PR status.
+- The route update was reconciled against current `main` so the TOTP routes added by PR #32 are preserved.
+- The prior project checkpoint dated 2026-11-20 records the maintainer's acceptance that the unused `/sample` route and its Blade view may be removed. That is the authorization basis for this PR.
+- Current branch must be synchronized with main at `696abc7a7341972256b5eec4d03a7372edd838ae` and rerun CI before merge.
+- No local `route:list`, PHPUnit, frontend build, or browser smoke test was run in this remote session.
 
-1. OTP concurrency (S02): PR #31 uses atomic cache locks for send, verify, and clear; a database-cache test covers the lock path on SQLite. Verify the actual production cache driver and lock table before release.
-2. MFA factor semantics (S01): PR #32 distinguishes email verification from TOTP MFA. Existing enabled email-based MFA accounts are preserved as legacy email method until explicit TOTP enrollment and confirmation. TOTP uses SHA1, six digits, 30-second period, and a plus/minus one time-step window. Replay is blocked with an atomically updated counter. Recovery codes are hashed, one-time, and audited.
-3. TOTP UX: no QR package exists in the project. PR #32 provides a local manual setup key and standard otpauth provisioning URI; it does not send secrets to an external QR service. Manual authenticator-app enrollment remains unverified.
-4. MFA audit: setup started, MFA enabled/disabled, successful TOTP/recovery-code use, and recovery-code regeneration are recorded in ActivityLog in the same transaction as the corresponding state change. No secrets or codes are logged.
-5. Activity log atomicity (S04): PR #30 wraps single-record Todo mutations and their Activity Log writes in one transaction. Existing bulk actions already use transactions.
-6. Authorization (S05): PR #34 adds cross-user negative coverage across single-record Todo endpoints, archive listing, and AJAX index. Existing bulk and restore ownership tests remain in place.
-7. Timezone (S03): PR #35 removes database-server CURRENT_DATE from smart ordering and uses the application date consistently. The application timezone remains UTC by default. Do not change the product timezone or timestamp storage policy until the product timezone and display expectations are explicitly established.
-8. Email delivery (S08): PR #31 tests recipient, subject, challenge lifecycle, and database cache locks. Real SMTP delivery still requires an environment-level smoke test.
-9. Sample route (S06): /sample remains registered. Confirm whether it is still used before removal.
-10. Stale comments (S07): remove only comments proven obsolete; avoid broad cosmetic cleanup mixed into security fixes.
-11. CI warnings: PR #33 fixes the missing-.env bootstrap and its CI run is warning-free. Merge/rebase sequencing is still pending.
-12. Dependency maintenance: branch chore/m0-dependency-maintenance is one commit ahead of main but is blocked. Its Composer lock resolves multiple Symfony 8.1 packages requiring PHP >=8.4.1, while the project declares PHP ^8.3 and CI runs PHP 8.3. Do not merge this lockfile. Regenerate dependencies with PHP 8.3.8 (or explicitly change the supported runtime after product/deployment confirmation).
+## Remaining active pull requests — 2026-11-24
 
-## Dependency maintenance
+| PR | Scope | Current state | Remaining action |
+|---|---|---|---|
+| [#45](https://github.com/imandodo01/Tymetry-web/pull/45) | Task input normalization | Draft, base `main` | Remove stale checkpoint from its diff; synchronize and rerun CI; mark ready after review |
+| [#47](https://github.com/imandodo01/Tymetry-web/pull/47) | Date/time/timezone contract documentation | Open, base `main` | Standalone documentation proposal; acceptance gap for alternatives/consequences still needs resolution |
+| [#49](https://github.com/imandodo01/Tymetry-web/pull/49) | Remove unused sample page | Draft, base `main` | Current main synchronization, CI, then ready/merge |
 
-- Branch: chore/m0-dependency-maintenance.
-- Commit: f572ff5f2dadb884a1a74146f4f913b39f9e4dd3.
-- Diff: composer.lock, package-lock.json, and removal of unused framer-motion / react-router-dom declarations from package.json.
-- Blocked: the new lockfile contains Symfony 8.1 components requiring PHP >=8.4.1, while the application contract and CI target PHP 8.3. Do not merge or deploy this lockfile. Regenerate on PHP 8.3.8 or with an explicit Composer platform override matching the supported runtime, then run clean install, tests, and build.
+PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
+
+## Review findings and operational limitations
+
+1. **TOTP MFA — PR #32:** account-keyed rate limiting now complements the existing per-IP throttle. Five failed TOTP/recovery-code attempts per account are limited per 60 seconds; successful verification clears the account counter. The latest CI run passed, but real authenticator enrollment/recovery and deployed cache-driver behavior remain unverified.
+2. **UUIDv7 — PR #46:** new IDs are generated server-side, caller-supplied IDs are overwritten, existing model IDs are immutable, and migration backfill is tested. Integer primary keys remain internal relations.
+3. **Timezone — PR #35 / #47:** PR #35 is merged and uses the Laravel application date for smart ordering. PR #47 remains a standalone contract proposal, not shipped account-aware timezone behavior. Its acceptance criterion for alternatives and consequences still needs a systematic mapping or explicit maintainer waiver.
+4. **ActivityLog — PR #30 / #48:** atomic Todo mutation writes are merged; rollback coverage now includes create, status, priority, update, archive, restore, completion toggle, and due-date update.
+5. **Task normalization — PR #45:** implementation is straightforward; remove its stale checkpoint copy before review.
+6. **Staging gap:** no staging environment is available. Real SMTP delivery, manual authenticator-app enrollment/recovery, and production cache-driver behavior remain operationally unverified. Do not use production as a substitute.
+7. **Dependency maintenance:** keep the previous dependency-maintenance branch blocked until Composer lockfile compatibility is restored for the declared PHP `^8.3` runtime and CI verifies a clean install.
+
+## Verification evidence
+
+- PR #32: GitHub Actions run #45360675502 passed on exact head `40a19b451e6e6057cf9b101f863debe91f65385b`; 91 tests / 411 assertions; frontend build passed.
+- PR #35: GitHub Actions run #45359643308 passed on the PR merge tree; 74 tests / 311 assertions; frontend build passed. PR merge commit `696c36e03062d65133cc5eb78f712a71ad617f9a`.
+- PR #46: GitHub Actions run #45361162584 passed on the current main merge tree; 97 tests / 428 assertions; frontend build passed.
+- PR #48: GitHub Actions run #45361479415 passed on exact head `cb7ac75c38b7f44a4709dfada8fb9b9913400453`; 102 tests / 443 assertions; frontend build passed.
+- PR #49's prior run #45359930733 passed against older main `696c36e03062d65133cc5eb78f712a71ad617f9a`; current route reconciliation and checkpoint update require a fresh CI run.
+- No local PHPUnit, browser/device, or staging smoke tests were executed in this remote session.
+- No deployment or production data/configuration operation was performed.
 
 ## Next actions
 
-1. Review and merge PR #33 first to make subsequent CI runs warning-free; then review PRs #30–#32 and #34–#35 in a deliberate sequence. Do not merge automatically. Re-run combined CI on the resulting main branch.
-2. Review AI Engineering Standard PR #6 and merge it after documentation review.
-3. Verify the actual production cache driver, SMTP delivery, and manual authenticator-app enrollment in a safe environment.
-4. Reconcile chore/m0-dependency-maintenance against PHP 8.3.8; keep the current branch blocked.
-5. Confirm the intended product timezone and whether /sample is still used before making further changes.
-6. Continue the remaining M0 technical-debt review, then refresh this checkpoint before the next session.
-
-## AI Engineering Standard
-
-Use https://github.com/imandodo01/ai-engineering-standard as the governing standard. Session continuity, checkpoint recovery, multi-environment verification, and dependency preparation workflows are already merged. PR #6 adds reusable MFA security and test guidance. Keep project-specific state in this checkpoint and general engineering rules in the standard.
+1. Finish PR #49 synchronization with current main, run CI on the final tree, then mark ready and merge.
+2. Remove the stale checkpoint file from PR #45's diff, synchronize it with main, and rerun CI.
+3. Resolve PR #47's alternatives/consequences acceptance gap or record an explicit maintainer waiver before merge.
+4. Re-run combined verification after each integration and keep evidence tied to exact SHAs.
