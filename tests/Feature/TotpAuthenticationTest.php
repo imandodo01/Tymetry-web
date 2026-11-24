@@ -212,6 +212,19 @@ class TotpAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_totp_verification_input_supports_alphanumeric_recovery_codes(): void
+    {
+        $response = $this->withSession([
+            'pending_auth_user_id' => 1,
+            'pending_auth_purpose' => 'totp',
+        ])->get(route('otp.index'));
+
+        $response->assertOk()
+            ->assertSee('inputmode="text"', false)
+            ->assertSee('autocapitalize="characters"', false)
+            ->assertSee('pattern="([0-9]{6}|[A-Za-z0-9]{10})"', false);
+    }
+
     public function test_totp_login_attempts_are_limited_per_account_across_ip_addresses(): void
     {
         $this->travelTo(Carbon::createFromTimestamp(59, 'UTC'));
