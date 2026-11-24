@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Web\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Auth\OtpService;
+use App\Services\Auth\TotpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use RuntimeException;
 use Throwable;
 
@@ -44,26 +46,57 @@ class OtpController extends Controller
         return back()->with('status', 'A new verification code has been sent.');
     }
 
-    public function verify(Request $request, OtpService $otp)
+    public function verify(Request $request, OtpService $otp, TotpService $totp)
     {
-        $validated = $request->validate([
-            'code' => ['required', 'digits:6'],
-        ]);
+        $purpose = $request->session()->get('pending_auth_purpose');
+        $codeRules = $purpose === 'totp'
+            ? ['required', 'string', 'regex:/\\A(?:\\d{6}|[A-Z0-9]{10})\\z/i']
+            : ['required', 'digits:6'];
+
+        $validated = $request->validate(['code' => $codeRules]);
 
         $user = $this->pendingUser($request);
-        $purpose = $request->session()->get('pending_auth_purpose');
 
-        if (!$user || !in_array($purpose, ['email_verification', 'two_factor'], true)) {
+        if (!$user || !in_array($purpose, ['email_verification', 'two_factor', 'totp'], true)) {
             $request->session()->forget(['pending_auth_user_id', 'pending_auth_purpose', 'pending_auth_remember']);
             return redirect()->route('auth.index');
         }
 
-        if (!$otp->verify($user, $purpose, $validated['code'])) {
+        $totpAttemptKey = $purpose === 'totp'
+            ? 'totp-login:' . $user->getKey()
+            : null;
+
+        if ($totpAttemptKey !== null && RateLimiter::tooManyAttempts($totpAttemptKey, 5)) {
+            return back()->withErrors([
+                'code' => 'Too many invalid authenticator attempts. Please wait before trying again.',
+            ]);
+        }
+
+        $verified = $purpose === 'totp'
+            ? $totp->verifyLogin($user, $validated['code'])
+            : $otp->verify($user, $purpose, $validated['code']);
+
+        if (!$verified) {
+            if ($totpAttemptKey !== null) {
+                RateLimiter::hit($totpAttemptKey, 60);
+            }
+
             return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
+        }
+
+        if ($totpAttemptKey !== null) {
+            RateLimiter::clear($totpAttemptKey);
         }
 
         if ($purpose === 'email_verification') {
             $user->forceFill(['email_verified_at' => now()])->save();
+
+            if ($user->two_factor_enabled && $user->two_factor_method === 'totp') {
+                $request->session()->put('pending_auth_purpose', 'totp');
+
+                return redirect()->route('otp.index')
+                    ->with('status', 'Email verified. Enter the code from your authenticator app.');
+            }
 
             if ($user->two_factor_enabled) {
                 $request->session()->put('pending_auth_purpose', 'two_factor');

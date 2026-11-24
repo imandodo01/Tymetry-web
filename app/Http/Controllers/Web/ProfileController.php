@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\Auth\TotpService;
+use RuntimeException;
 
 class ProfileController extends Controller
 {
-    public function index()
+    public function index(TotpService $totp)
     {
-        return view('profile.index');
+        $user = auth()->user();
+        $pendingTotpSecret = $totp->pendingSetupSecret($user);
+        $pendingTotpUri = $pendingTotpSecret
+            ? $totp->provisioningUri($user, $pendingTotpSecret)
+            : null;
+
+        return view('profile.index', compact('pendingTotpUri'));
     }
 
     public function update(Request $request)
@@ -49,27 +57,82 @@ class ProfileController extends Controller
         return back()->with('success', 'Password updated.');
     }
 
-    public function twoFactor(Request $request)
+    public function twoFactor(Request $request, TotpService $totp)
     {
-        $validated = $request->validate([
+        $request->validate([
             'current_password' => ['required', 'current_password'],
             'two_factor_enabled' => ['required', 'boolean'],
         ]);
 
-        $user = $request->user();
+        if ($request->boolean('two_factor_enabled')) {
+            return back()->withErrors([
+                'two_factor_enabled' => 'Enable two-factor authentication by setting up an authenticator app.',
+            ]);
+        }
 
-        if ($request->boolean('two_factor_enabled') && !$user->email_verified_at) {
+        $totp->disable($request->user());
+
+        return back()->with('success', 'Two-factor authentication disabled.');
+    }
+
+    public function twoFactorSetup(Request $request, TotpService $totp)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+        ]);
+
+        if (!$request->user()->email_verified_at) {
             return back()->withErrors([
                 'two_factor_enabled' => 'Verify your email address before enabling two-factor authentication.',
             ]);
         }
 
-        $user->update([
-            'two_factor_enabled' => $request->boolean('two_factor_enabled'),
+        try {
+            $totp->beginSetup($request->user());
+        } catch (RuntimeException $exception) {
+            return back()->withErrors(['two_factor_enabled' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Authenticator setup started. Add the account to your authenticator app, then confirm the six-digit code within 10 minutes.');
+    }
+
+    public function twoFactorConfirm(Request $request, TotpService $totp)
+    {
+        if (!$request->user()->email_verified_at) {
+            return back()->withErrors([
+                'two_factor_enabled' => 'Verify your email address before enabling two-factor authentication.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'code' => ['required', 'digits:6'],
         ]);
 
-        return back()->with('success', $user->two_factor_enabled
-            ? 'Two-factor authentication enabled.'
-            : 'Two-factor authentication disabled.');
+        $recoveryCodes = $totp->confirmSetup($request->user(), $validated['code']);
+
+        if ($recoveryCodes === null) {
+            return back()->withErrors(['code' => 'The authenticator code is invalid or the setup session has expired.']);
+        }
+
+        return back()
+            ->with('success', 'Authenticator-based two-factor authentication enabled.')
+            ->with('recovery_codes', $recoveryCodes);
+    }
+
+    public function twoFactorRecoveryCodes(Request $request, TotpService $totp)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+        ]);
+
+        try {
+            $recoveryCodes = $totp->regenerateRecoveryCodes($request->user());
+        } catch (RuntimeException $exception) {
+            return back()->withErrors(['two_factor_enabled' => $exception->getMessage()]);
+        }
+
+        return back()
+            ->with('success', 'New recovery codes generated. Previous recovery codes are no longer valid.')
+            ->with('recovery_codes', $recoveryCodes);
     }
 }

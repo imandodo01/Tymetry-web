@@ -37,6 +37,18 @@ class AuthController extends Controller
         }
 
         if ($user->two_factor_enabled) {
+            if ($user->two_factor_method === 'totp') {
+                $request->session()->put([
+                    'pending_auth_user_id' => $user->id,
+                    'pending_auth_purpose' => 'totp',
+                    'pending_auth_remember' => $request->boolean('remember'),
+                ]);
+
+                return redirect()->route('otp.index')
+                    ->with('status', 'Enter the code from your authenticator app to finish signing in.');
+            }
+
+            // Preserve email-based MFA for accounts that enabled it before authenticator migration.
             return $this->beginVerification($request, $user, 'two_factor', $otp);
         }
 
