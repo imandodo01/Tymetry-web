@@ -34,7 +34,7 @@
                 <label for="code" class="form-label">
                     {{ $purpose === 'totp' ? 'Authenticator or recovery code' : 'Six-digit verification code' }}
                 </label>
-                <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+                <input id="code" name="code" type="text" inputmode="{{ $purpose === 'totp' ? 'text' : 'numeric' }}" autocomplete="one-time-code" autocapitalize="{{ $purpose === 'totp' ? 'characters' : 'off' }}" spellcheck="false"
                     pattern="{{ $purpose === 'totp' ? '([0-9]{6}|[A-Za-z0-9]{10})' : '[0-9]{6}' }}"
                     maxlength="{{ $purpose === 'totp' ? 10 : 6 }}" required autofocus
                     class="form-control @error('code') is-invalid @enderror" aria-describedby="code-help">
