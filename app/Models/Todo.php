@@ -83,15 +83,13 @@ class Todo extends Model
 
     public function scopeSmartOrder($query)
     {
+        $today = now()->toDateString();
+
         return $query
-            ->orderByRaw("CASE
-                WHEN status = 2 THEN 5
-                WHEN due_date < CURRENT_DATE
-                    THEN 1
-                WHEN due_date = CURRENT_DATE
-                    THEN 2
-                ELSE 3
-            END")
+            ->orderByRaw(
+                'CASE WHEN status = ? THEN 5 WHEN due_date < ? THEN 1 WHEN due_date = ? THEN 2 ELSE 3 END',
+                [TodoStatus::Done->value, $today, $today]
+            )
             ->orderBy('priority', 'desc')
             ->orderBy('due_date')
             ->latest();
