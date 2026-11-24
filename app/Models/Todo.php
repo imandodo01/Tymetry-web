@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Enums\Todo\TodoPriority;
 use App\Enums\Todo\TodoStatus;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,13 @@ class Todo extends Model
     protected static function booted(): void
     {
         static::creating(function (Todo $todo): void {
-            $todo->public_id ??= (string) Str::uuid7();
+            $todo->public_id = (string) Str::uuid7();
+        });
+
+        static::updating(function (Todo $todo): void {
+            if ($todo->isDirty('public_id')) {
+                $todo->public_id = $todo->getOriginal('public_id');
+            }
         });
 
         static::saving(function (Todo $todo): void {
@@ -89,15 +96,13 @@ class Todo extends Model
 
     public function scopeSmartOrder($query)
     {
+        $today = now()->toDateString();
+
         return $query
-            ->orderByRaw("CASE
-                WHEN status = 2 THEN 5
-                WHEN due_date < CURRENT_DATE
-                    THEN 1
-                WHEN due_date = CURRENT_DATE
-                    THEN 2
-                ELSE 3
-            END")
+            ->orderByRaw(
+                'CASE WHEN status = ? THEN 5 WHEN due_date < ? THEN 1 WHEN due_date = ? THEN 2 ELSE 3 END',
+                [TodoStatus::Done->value, $today, $today]
+            )
             ->orderBy('priority', 'desc')
             ->orderBy('due_date')
             ->latest();
