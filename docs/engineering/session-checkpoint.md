@@ -44,7 +44,7 @@ Latest main HEAD: `696c36e03062d65133cc5eb78f712a71ad617f9a` (PR #35 squash merg
 - Intended code changes:
   - Remove `GET /sample` from `routes/web.php`.
   - Delete `resources/views/sample.blade.php`.
-- Maintainer confirmation that the route is unused and may be removed must remain explicit before merge.
+- The prior project checkpoint dated 2026-11-20 records the maintainer's acceptance that the unused `/sample` route and its view may be removed. This remains the authorization basis for this PR.
 - Prior CI run #97 passed on exact head `6bd3104b388c9ca5eb64e54e4cfadda453c0b918`, but PHP output had 49 warnings and 1 passed (235 assertions) due to the old CI environment missing `.env`. Frontend build succeeded. This evidence does not verify a refreshed branch or the current mainline.
 - No local route:list, PHPUnit, frontend build, or browser smoke test was run in the prior remote session.
 
