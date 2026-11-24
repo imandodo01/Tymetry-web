@@ -20,7 +20,13 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::creating(function (User $user): void {
-            $user->public_id ??= (string) Str::uuid7();
+            $user->public_id = (string) Str::uuid7();
+        });
+
+        static::updating(function (User $user): void {
+            if ($user->isDirty('public_id')) {
+                $user->public_id = $user->getOriginal('public_id');
+            }
         });
     }
 
