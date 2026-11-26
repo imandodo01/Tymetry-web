@@ -6,6 +6,8 @@ use App\Enums\Todo\TodoPriority;
 use App\Enums\Todo\TodoStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TodoRequest;
+use App\Services\TymxImportPreview;
+use Illuminate\Http\UploadedFile;
 use App\Models\ActivityLog;
 use App\Models\Todo;
 use Illuminate\Http\Request;
@@ -192,6 +194,38 @@ class TodoController extends Controller
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    /**
+     * Validate a TYMX v1 file and return a read-only preview.
+     * No Todo or ActivityLog records are changed by this endpoint.
+     */
+    public function previewImport(Request $request, TymxImportPreview $preview)
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'max:5120'],
+        ]);
+
+        /** @var UploadedFile $file */
+        $file = $validated['file'];
+
+        if (strtolower($file->getClientOriginalExtension()) !== 'tymx') {
+            return response()->json([
+                'message' => 'The uploaded file must use the .tymx extension.',
+                'errors' => ['file' => ['The uploaded file must use the .tymx extension.']],
+            ], 422);
+        }
+
+        $contents = file_get_contents($file->getRealPath());
+
+        if ($contents === false) {
+            return response()->json([
+                'message' => 'The uploaded file could not be read.',
+                'errors' => ['file' => ['The uploaded file could not be read.']],
+            ], 422);
+        }
+
+        return response()->json($preview->preview($contents, $request->user()));
     }
 
     public function create()

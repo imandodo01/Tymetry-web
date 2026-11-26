@@ -129,7 +129,7 @@ Contract rules:
 Import preview and apply are not implemented by PR #53. These rules preserve the agreed safety boundary for a separate import workstream. Use `public_id` to match incoming records to existing Todos owned by the authenticated user.
 
 - Matching record: classify proposed changes by comparing imported values with current values.
-- Unknown `public_id`: do not silently create a new Todo in the first release unless create semantics are explicitly designed and approved. Default planning assumption: report as unmatched and leave unchanged.
+- Unknown `public_id`: report as unmatched and leave unchanged. The v1 preview does not create Todos. This also prevents a file from claiming an identity that belongs to another account without revealing whether that identity exists elsewhere.
 - Duplicate `public_id` values within one file: flag as a file validation error or explicit conflict; never process ambiguously.
 - A `public_id` belonging to another user must not reveal that another user's record exists. Treat it as unavailable/unmatched without leaking ownership information.
 - Never delete a Todo through import.
@@ -156,10 +156,10 @@ Import preview and apply are not implemented by PR #53. These rules preserve the
 - [ ] Export uses `public_id`, not internal database IDs.
 - [ ] Export excludes internal ownership identifiers and unrelated sensitive data.
 - [ ] File format has a documented, versioned schema.
-- [ ] Import upload validates format, version, encoding, size, record count, and field constraints.
-- [ ] Import preview is shown before any database mutation.
-- [ ] Preview identifies updates, unchanged records, unmatched records, invalid records, and conflicts.
-- [ ] Duplicate IDs and cross-user IDs are handled without ambiguity or information leakage.
+- [x] Import preview validates format, version, UTF-8 encoding, file size (5 MB maximum), record count (2,000 maximum), and all v1 field constraints.
+- [x] Import preview is shown before any database mutation. Preview is read-only and never writes Todos or ActivityLog records.
+- [x] Preview identifies proposed updates, unchanged records, unmatched records, and three-way field conflicts. Invalid documents are rejected with a validation error before a preview is returned.
+- [x] Duplicate IDs are rejected; unknown and cross-user IDs receive the same unmatched result without disclosing ownership.
 - [ ] Import never deletes Todos.
 - [ ] Import never silently changes fields; proposed changes are visible and user-confirmed.
 - [ ] Stale-file conflicts are detected using a defined concurrency strategy.
@@ -245,3 +245,17 @@ Work in small, reviewable increments. These states distinguish implementation, t
 3. Do not merge either PR solely because CI is green. Merge remains a separate explicit decision.
 4. Design TYMX import preview (M6) as a separate workstream. Before implementing apply (M7), finalize transaction boundaries, backup/recovery, apply-time revalidation, and conflict resolution details.
 5. Treat Android identity/API/synchronization as a later, separately scoped integration; do not imply it is part of the Web export PR.
+
+
+### M6 implementation boundary (2026-11-26)
+
+The read-only preview implementation is on [PR #54](https://github.com/imandodo01/Tymetry-web/pull/54), branch `feature/m6-tymx-import-preview`.
+
+- Upload accepts only the `.tymx` extension and validates UTF-8 JSON against the TYMX v1 envelope and Todo snapshot constraints.
+- Resource bounds: 5 MB maximum upload and 2,000 Todo records per document.
+- Duplicate `public_id` values reject the document.
+- Only active Todos owned by the authenticated user are eligible for matching. Unknown, archived, and other-account identities are reported uniformly as unmatched; no ownership information is disclosed and no Todo is created.
+- Per-field three-way comparison uses imported `base`, proposed `data`, and current server state. Server-only changes are preserved; proposal-only changes are marked eligible; divergent concurrent changes are marked conflicts.
+- The preview endpoint and UI are read-only. There is no apply/confirm action in M6; execution, revalidation, transaction handling, and ActivityLog writes remain M7.
+- Schema-invalid documents are rejected as a whole rather than partially previewed.
+- CI, independent review, and manual browser acceptance are tracked separately from implementation.
