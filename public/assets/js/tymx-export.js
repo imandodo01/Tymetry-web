@@ -1,5 +1,5 @@
 function submitTymxExport(selection, ids) {
-    const form = $('<form>', { method: 'POST', action: 'todos/export', class: 'd-none' });
+    const form = $('<form>', { method: 'POST', action: $('#exportSelectedTodos').data('export-url'), class: 'd-none' });
     form.append($('<input>', { type: 'hidden', name: '_token', value: $('meta[name="csrf-token"]').attr('content') }));
     form.append($('<input>', { type: 'hidden', name: 'selection', value: selection }));
     (ids || []).forEach(id => form.append($('<input>', { type: 'hidden', name: 'ids[]', value: id })));
