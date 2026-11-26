@@ -343,7 +343,7 @@ function loadTodoBoard() {
     $('#todoBoardLoading').removeClass('d-none');
     $('#todoBoardError').addClass('d-none');
 
-    boardRequest = $.ajax({
+    const request = $.ajax({
         url: 'todos/board-data',
         type: 'GET',
         data: {
@@ -351,7 +351,11 @@ function loadTodoBoard() {
             status: $('#filterStatus').val(),
             priority: $('#filterPriority').val()
         }
-    }).done(function (response) {
+    });
+
+    boardRequest = request;
+
+    request.done(function (response) {
         renderTodoBoard(response.data || []);
     }).fail(function (xhr, status) {
         if (status !== 'abort') {
@@ -359,7 +363,9 @@ function loadTodoBoard() {
             $('#todoBoardError').removeClass('d-none');
         }
     }).always(function () {
-        $('#todoBoardLoading').addClass('d-none');
-        boardRequest = null;
+        if (boardRequest === request) {
+            $('#todoBoardLoading').addClass('d-none');
+            boardRequest = null;
+        }
     });
 }
