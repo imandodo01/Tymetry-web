@@ -553,3 +553,87 @@ body {
 .todo-table-error p {
     font-size: 13px;
 }
+
+
+/* Todo Board View */
+.todo-board-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+}
+
+.todo-board-column {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+}
+
+.todo-board-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 2px 2px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.todo-board-column-header h6 {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.todo-board-cards {
+    display: flex;
+    min-height: 72px;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.todo-board-card {
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(20, 25, 35, 0.04);
+}
+
+.todo-board-card-title {
+    display: block;
+    margin-bottom: 12px;
+    color: #252a32;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.todo-board-card-title:hover {
+    color: #111827;
+    text-decoration: underline;
+}
+
+.todo-board-card-meta {
+    margin-bottom: 10px;
+}
+
+.todo-board-due {
+    color: #69707c;
+    font-size: 11px;
+}
+
+@media (max-width: 900px) {
+    .todo-board-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .todo-board-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
