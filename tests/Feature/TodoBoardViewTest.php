@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Enums\\Todo\\TodoPriority;
-use App\\Enums\\Todo\\TodoStatus;
-use App\\Models\\Todo;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Enums\Todo\TodoPriority;
+use App\Enums\Todo\TodoStatus;
+use App\Models\Todo;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TodoBoardViewTest extends TestCase
 {
@@ -81,6 +81,12 @@ class TodoBoardViewTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.title', 'Monthly report');
+    }
+
+    public function test_board_data_requires_authentication(): void
+    {
+        $this->getJson(route('todo.board-data'))
+            ->assertUnauthorized();
     }
 
     public function test_board_view_is_available_from_the_todo_page(): void
