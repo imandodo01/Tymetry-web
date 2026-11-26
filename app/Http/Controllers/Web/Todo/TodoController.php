@@ -126,7 +126,7 @@ class TodoController extends Controller
             'priority_label' => $todo->priority->label(),
             'priority_badge' => $todo->priority->badge(),
             'due_date' => $todo->due_date
-                ? \\Carbon\\Carbon::parse($todo->due_date)->toDateString()
+                ? \Carbon\Carbon::parse($todo->due_date)->toDateString()
                 : null,
             'due_label' => $todo->dueLabel(),
             'due_status' => $todo->dueStatus(),
