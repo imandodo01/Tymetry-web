@@ -9,7 +9,7 @@
 @section('content')
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-0 py-3 px-4">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
                 <h5 class="mb-1 fw-semibold">
                     Todo List
@@ -18,10 +18,16 @@
                     Manage your task activity
                 </small>
             </div>
-            <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm">
+            <div class="d-flex align-items-center gap-2">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Todo view">
+                    <button type="button" class="btn btn-dark" id="showTodoList" aria-pressed="true">List</button>
+                    <button type="button" class="btn btn-outline-dark" id="showTodoBoard" aria-pressed="false">Board</button>
+                </div>
+                <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>
                 Add Todo
             </a>
+            </div>
             {{-- <button class="btn btn-outline-dark btn-sm" id="createTodoBtn">Add Todo</button> --}}
         </div>
     </div>
@@ -57,6 +63,7 @@
                     </button>
                 </div>
             </div>
+            <div id="todoListView">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="Bulk task actions">
                 <button type="button" class="btn btn-outline-dark btn-sm" id="bulkDone" disabled>
                     Mark Done
@@ -110,7 +117,34 @@
                 <tbody>
                 </tbody>
             </table>
+            </div>
         </div>
+        <section id="todoBoardView" class="d-none" aria-label="Todo board">
+            <div id="todoBoardLoading" class="todo-table-loading d-none" role="status" aria-live="polite">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span>Loading board...</span>
+            </div>
+            <div id="todoBoardError" class="todo-table-error d-none" role="alert">
+                <div class="fw-semibold mb-1">Unable to load board</div>
+                <p class="text-muted mb-3">Check your connection and try again.</p>
+                <button type="button" class="btn btn-outline-dark btn-sm" id="retryTodoBoard">Try again</button>
+            </div>
+            <div id="todoBoardEmpty" class="text-center text-muted py-5 d-none">
+                <i class="bi bi-kanban fs-1" aria-hidden="true"></i>
+                <p class="mt-3 mb-0">No tasks match these filters.</p>
+            </div>
+            <div class="todo-board-grid" id="todoBoardColumns">
+                @foreach ($statusOption as $status)
+                <section class="todo-board-column" data-status="{{ $status->value }}" aria-labelledby="todo-board-heading-{{ $status->value }}">
+                    <header class="todo-board-column-header">
+                        <h6 class="mb-0" id="todo-board-heading-{{ $status->value }}">{{ $status->label() }}</h6>
+                        <span class="badge text-bg-light" data-column-count="{{ $status->value }}">0</span>
+                    </header>
+                    <div class="todo-board-cards" data-column-cards="{{ $status->value }}" aria-live="polite"></div>
+                </section>
+                @endforeach
+            </div>
+        </section>
     </div>
 </div>
 
