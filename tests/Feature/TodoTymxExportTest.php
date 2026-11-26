@@ -52,4 +52,40 @@ class TodoTymxExportTest extends TestCase
     {
         $this->postJson(route('todo.export'), ['selection' => 'all_active'])->assertUnauthorized();
     }
+    public function test_selected_export_rejects_duplicate_ids(): void
+    {
+        $todo = Todo::factory()->create();
+
+        $this->actingAs($todo->user)
+            ->postJson(route('todo.export'), [
+                'selection' => 'selected',
+                'ids' => [$todo->id, $todo->id],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids.1');
+    }
+
+    public function test_selected_export_rejects_more_than_one_hundred_ids(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('todo.export'), [
+                'selection' => 'selected',
+                'ids' => range(1, 101),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids');
+    }
+
+    public function test_export_rejects_unsupported_selection(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('todo.export'), [
+                'selection' => 'everything',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('selection');
+    }
+
 }
