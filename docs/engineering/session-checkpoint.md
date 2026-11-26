@@ -103,3 +103,7 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 - Follow-up hardening commit: UUID format matches the published UUID syntax rather than restricting versions; RFC 3339 timezone offsets are range-checked; server-only and already-current changes are explicitly covered by tests.
 
 - CI run #45826450026 failed on preview tests due to an undefined optional regex capture for the RFC 3339 `Z` timezone. The failure was isolated from frontend build (passed); the timezone parser is being corrected with `PREG_UNMATCHED_AS_NULL` and named captures. Re-run CI on the follow-up commit.
+
+- Corrected CI head: `51221fe7c7c317d1ed208e9b683908d4f5878d77`; GitHub Actions run #45826685253 passed on PHP 8.3 / Node 24. PHPUnit: 129 passed, 704 assertions; frontend build passed.
+- The earlier run #45826450026 failed because the regex's optional offset capture was absent for `Z`; the named capture + `PREG_UNMATCHED_AS_NULL` fix is covered by the passing full suite.
+- PR #54 remains Draft and stacked on PR #53. Independent review and browser acceptance are still pending. No merge or deployment.
