@@ -316,13 +316,34 @@ function renderTodoBoard(todos) {
                 escapeTodoHtml(todo.due_status === 'overdue' ? 'Overdue' : todo.due_label) +
                 '</span></div>'
             : '<div class="todo-board-due text-muted">No due date</div>';
-        const card = $('<article class="todo-board-card"></article>');
+        const card = $('<article class="todo-board-card" draggable="true"></article>');
+        card.attr('data-todo-id', todo.id);
+        card.attr('data-current-status', todo.status);
+        card.append('<div class="todo-board-card-top"><span class="todo-board-drag-handle" aria-hidden="true"><i class="bi bi-grip-vertical"></i> Drag</span><span class="todo-board-card-saving d-none" role="status">Saving...</span></div>');
         card.append('<a class="todo-board-card-title" href="' + escapeTodoHtml(todo.edit_url) + '">' +
             escapeTodoHtml(todo.title) + '</a>');
         card.append('<div class="todo-board-card-meta"><span class="badge ' +
             escapeTodoHtml(todo.priority_badge) + '">' + escapeTodoHtml(todo.priority_label) +
             '</span></div>');
         card.append(dueText);
+
+        const statusControl = $('<label class="todo-board-status-control"><span>Move to</span><select class="form-select form-select-sm todo-board-status" aria-label="Change status for task"></select></label>');
+        [
+            { value: 0, label: 'Pending' },
+            { value: 1, label: 'In Progress' },
+            { value: 2, label: 'Done' }
+        ].forEach(function (status) {
+            statusControl.find('select').append(
+                $('<option></option>').val(status.value).text(status.label)
+            );
+        });
+        statusControl.find('select')
+            .val(String(todo.status))
+            .attr('data-id', todo.id)
+            .attr('data-original-status', todo.status);
+        statusControl.find('select').attr('aria-label', 'Change status for ' + todo.title);
+        card.append(statusControl);
+
         $('[data-column-cards="' + todo.status + '"]').append(card);
     });
 
@@ -369,3 +390,89 @@ function loadTodoBoard() {
         }
     });
 }
+
+function updateBoardTodoStatus(todoId, status, card) {
+    if (card.attr('data-saving') === 'true') {
+        return;
+    }
+
+    const originalStatus = Number(card.attr('data-current-status'));
+    const requestedStatus = Number(status);
+
+    if (requestedStatus === originalStatus) {
+        card.find('.todo-board-status').val(String(originalStatus));
+        return;
+    }
+
+    card.attr('data-saving', 'true')
+        .addClass('is-saving')
+        .find('.todo-board-card-saving').removeClass('d-none');
+    card.find('.todo-board-status').prop('disabled', true);
+    card.attr('draggable', 'false');
+
+    $.ajax({
+        url: 'todos/' + todoId + '/status',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            status: requestedStatus
+        }
+    }).done(function () {
+        showToast('Task status updated');
+        loadTodoBoard();
+    }).fail(function (xhr) {
+        ajaxFailHandler(xhr, { notify: false });
+        showToast('Unable to update task status. The previous status has been restored.');
+        loadTodoBoard();
+    }).always(function () {
+        card.removeClass('is-saving');
+    });
+}
+
+$(document).on('change', '.todo-board-status', function () {
+    const select = $(this);
+    const card = select.closest('.todo-board-card');
+    updateBoardTodoStatus(select.data('id'), select.val(), card);
+});
+
+$(document).on('dragstart', '.todo-board-card', function (event) {
+    const originalEvent = event.originalEvent;
+    if ($(event.target).closest('a, select, button').length || $(this).attr('data-saving') === 'true') {
+        event.preventDefault();
+        return;
+    }
+
+    originalEvent.dataTransfer.effectAllowed = 'move';
+    originalEvent.dataTransfer.setData('text/plain', String($(this).data('todo-id')));
+    $(this).addClass('is-dragging');
+});
+
+$(document).on('dragend', '.todo-board-card', function () {
+    $(this).removeClass('is-dragging');
+    $('.todo-board-column').removeClass('is-drop-target');
+});
+
+$(document).on('dragover', '.todo-board-column', function (event) {
+    event.preventDefault();
+    event.originalEvent.dataTransfer.dropEffect = 'move';
+    $(this).addClass('is-drop-target');
+});
+
+$(document).on('dragleave', '.todo-board-column', function (event) {
+    if (!this.contains(event.relatedTarget)) {
+        $(this).removeClass('is-drop-target');
+    }
+});
+
+$(document).on('drop', '.todo-board-column', function (event) {
+    event.preventDefault();
+    $('.todo-board-column').removeClass('is-drop-target');
+
+    const todoId = event.originalEvent.dataTransfer.getData('text/plain');
+    const card = $('.todo-board-card[data-todo-id="' + todoId + '"]');
+    if (!card.length || card.attr('data-saving') === 'true') {
+        return;
+    }
+
+    updateBoardTodoStatus(todoId, $(this).data('status'), card);
+});
