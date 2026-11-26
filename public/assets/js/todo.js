@@ -1,5 +1,7 @@
 var table;
 var searchDebounceTimer;
+var boardRequest;
+var isBoardView = false;
 
 function toggleBulkButtons() {
     const selectedCount = $('.todo-checkbox:checked').length;
@@ -80,6 +82,16 @@ $(function () {
         }
     });
 
+    $('#showTodoList').on('click', function () {
+        setTodoView('list');
+    });
+
+    $('#showTodoBoard').on('click', function () {
+        setTodoView('board');
+    });
+
+    $('#retryTodoBoard').on('click', loadTodoBoard);
+
     $('#retryTodoTable').on('click', function () {
         table.ajax.reload(null, false);
     });
@@ -120,14 +132,22 @@ $(document).on('change', '.todo-status', function () {
 function scheduleTodoSearch() {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(function () {
-        table.draw();
+        if (isBoardView) {
+            loadTodoBoard();
+        } else {
+            table.draw();
+        }
     }, 300);
 }
 
 $('#searchTitle').on('input search', scheduleTodoSearch);
 
 $('#filterStatus, #filterPriority').on('change', function () {
-    table.draw();
+    if (isBoardView) {
+        loadTodoBoard();
+    } else {
+        table.draw();
+    }
 });
 
 $('#resetTodoFilters').on('click', function () {
@@ -135,7 +155,11 @@ $('#resetTodoFilters').on('click', function () {
     $('#searchTitle').val('');
     $('#filterStatus').val('');
     $('#filterPriority').val('');
-    table.draw();
+    if (isBoardView) {
+        loadTodoBoard();
+    } else {
+        table.draw();
+    }
 });
 
 function getSelectedTodos() {
@@ -255,3 +279,87 @@ $(document).on('change', '.inlineDueDate', function () {
         }
     });
 });
+
+function setTodoView(view) {
+    isBoardView = view === 'board';
+
+    $('#todoListView').toggleClass('d-none', isBoardView);
+    $('#todoBoardView').toggleClass('d-none', !isBoardView);
+    $('#showTodoList')
+        .toggleClass('btn-dark', !isBoardView)
+        .toggleClass('btn-outline-dark', isBoardView)
+        .attr('aria-pressed', String(!isBoardView));
+    $('#showTodoBoard')
+        .toggleClass('btn-dark', isBoardView)
+        .toggleClass('btn-outline-dark', !isBoardView)
+        .attr('aria-pressed', String(isBoardView));
+
+    if (isBoardView) {
+        loadTodoBoard();
+    }
+}
+
+function escapeTodoHtml(value) {
+    return $('<div>').text(value ?? '').html();
+}
+
+function renderTodoBoard(todos) {
+    const columns = [0, 1, 2];
+    columns.forEach(function (status) {
+        $('[data-column-cards="' + status + '"]').empty();
+        $('[data-column-count="' + status + '"]').text('0');
+    });
+
+    todos.forEach(function (todo) {
+        const dueText = todo.due_date
+            ? '<div class="todo-board-due"><span class="badge ' + escapeTodoHtml(todo.due_badge) + '">' +
+                escapeTodoHtml(todo.due_status === 'overdue' ? 'Overdue' : todo.due_label) +
+                '</span></div>'
+            : '<div class="todo-board-due text-muted">No due date</div>';
+        const card = $('<article class="todo-board-card"></article>');
+        card.append('<a class="todo-board-card-title" href="' + escapeTodoHtml(todo.edit_url) + '">' +
+            escapeTodoHtml(todo.title) + '</a>');
+        card.append('<div class="todo-board-card-meta"><span class="badge ' +
+            escapeTodoHtml(todo.priority_badge) + '">' + escapeTodoHtml(todo.priority_label) +
+            '</span></div>');
+        card.append(dueText);
+        $('[data-column-cards="' + todo.status + '"]').append(card);
+    });
+
+    columns.forEach(function (status) {
+        const count = $('[data-column-cards="' + status + '"] .todo-board-card').length;
+        $('[data-column-count="' + status + '"]').text(count);
+    });
+
+    $('#todoBoardEmpty').toggleClass('d-none', todos.length > 0);
+    $('#todoBoardColumns').toggleClass('d-none', todos.length === 0);
+}
+
+function loadTodoBoard() {
+    if (boardRequest) {
+        boardRequest.abort();
+    }
+
+    $('#todoBoardLoading').removeClass('d-none');
+    $('#todoBoardError').addClass('d-none');
+
+    boardRequest = $.ajax({
+        url: 'todos/board-data',
+        type: 'GET',
+        data: {
+            search_title: $('#searchTitle').val(),
+            status: $('#filterStatus').val(),
+            priority: $('#filterPriority').val()
+        }
+    }).done(function (response) {
+        renderTodoBoard(response.data || []);
+    }).fail(function (xhr, status) {
+        if (status !== 'abort') {
+            ajaxFailHandler(xhr, { notify: false });
+            $('#todoBoardError').removeClass('d-none');
+        }
+    }).always(function () {
+        $('#todoBoardLoading').addClass('d-none');
+        boardRequest = null;
+    });
+}
