@@ -296,6 +296,10 @@ function setTodoView(view) {
 
     if (isBoardView) {
         loadTodoBoard();
+    } else {
+        // Board mutations happen through a separate endpoint; refresh DataTables
+        // whenever the user returns to List View so both views stay in sync.
+        table.ajax.reload(null, false);
     }
 }
 
