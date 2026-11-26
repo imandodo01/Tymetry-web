@@ -71,7 +71,7 @@
                 <button type="button" class="btn btn-outline-dark btn-sm" id="bulkArchive" disabled>
                     Archive
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="exportSelectedTodos" disabled>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="exportSelectedTodos" data-export-url="{{ route('todo.export') }}" disabled>
                     Export selected
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="exportAllTodos">
