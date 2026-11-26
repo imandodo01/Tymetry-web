@@ -91,11 +91,13 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 
 - Parent PR #53 exact head: `1c64d79e744b07269f5c0582c608ea288d48cfff`; CI run #45825237681 passed.
 - M6 branch: `feature/m6-tymx-import-preview`, created from the PR #53 head above.
-- PR #54: https://github.com/imandodo01/Tymetry-web/pull/54 (Draft; implementation and CI status must be refreshed after the M6 commit).
+- PR #54: https://github.com/imandodo01/Tymetry-web/pull/54 (Draft; implementation commit `300a611e140efb3a12f167da6b1afcac8ac9560b`; refresh CI evidence after each follow-up commit).
 - Scope: read-only TYMX v1 file upload, validation, identity matching, three-way conflict preview, and UI display. No Todo or ActivityLog mutations; no import apply.
 - Resource limits: 5 MB upload; 2,000 records. Only active Todos belonging to the authenticated user are matched. Unknown, archived, and cross-user IDs are all reported as unmatched; do not reveal cross-user identity existence.
-- Conflict rule per field: if proposed equals base, do nothing; if current equals base, proposal is eligible; if current equals proposal, it is already current; otherwise report a conflict.
+- Conflict rule per field: if proposed equals base, preserve current and report `server_only` when current differs; if current equals base, proposal is eligible; if current equals proposal, it is already current; otherwise report a conflict.
 - Invalid documents are rejected as a whole. Duplicate public IDs are rejected. No internal integer IDs are accepted from the document.
 - Files to be changed: controller, route, preview service, Todo index Blade, Todo JS, feature tests, product plan, this checkpoint.
 - Automated verification must cover valid preview, three-way conflicts, server-only changes, unmatched/cross-user IDs, duplicate IDs, malformed/unsupported schema, unknown fields, file extension, authentication, and no database/activity mutation.
 - Manual browser acceptance and independent review remain pending. M7 import apply is explicitly not implemented.
+
+- Follow-up hardening commit: UUID format matches the published UUID syntax rather than restricting versions; RFC 3339 timezone offsets are range-checked; server-only and already-current changes are explicitly covered by tests.

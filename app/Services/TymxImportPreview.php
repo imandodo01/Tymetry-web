@@ -99,6 +99,16 @@ class TymxImportPreview
                 $server = $current[$field];
 
                 if ($proposed === $base) {
+                    if ($server !== $base) {
+                        $changes[] = [
+                            'field' => $field,
+                            'base' => $base,
+                            'current' => $server,
+                            'proposed' => $proposed,
+                            'resolution' => 'server_only',
+                        ];
+                    }
+
                     continue;
                 }
 
@@ -195,7 +205,7 @@ class TymxImportPreview
             );
 
             if (! is_string($record->public_id) || ! preg_match(
-                '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iD',
+                '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iD',
                 $record->public_id
             )) {
                 $this->invalid('Todo record ' . ($index + 1) . ' has an invalid public_id.');
@@ -281,7 +291,7 @@ class TymxImportPreview
     private function isRfc3339DateTime(string $value): bool
     {
         if (! preg_match(
-            '/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/D',
+            '/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/D',
             $value,
             $matches
         )) {
@@ -291,7 +301,8 @@ class TymxImportPreview
         return checkdate((int) $matches[2], (int) $matches[3], (int) $matches[1])
             && (int) $matches[4] <= 23
             && (int) $matches[5] <= 59
-            && (int) $matches[6] <= 60;
+            && (int) $matches[6] <= 60
+            && ($matches[8] === '' || ((int) $matches[9] <= 23 && (int) $matches[10] <= 59));
     }
 
     /**

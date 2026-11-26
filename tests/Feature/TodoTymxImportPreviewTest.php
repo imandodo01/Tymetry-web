@@ -69,7 +69,7 @@ class TodoTymxImportPreviewTest extends TestCase
         $this->assertSame(0, ActivityLog::query()->count());
     }
 
-    public function test_preview_preserves_server_only_changes_and_marks_matching_proposals_current(): void
+    public function test_preview_reports_server_only_changes_without_overwriting_them(): void
     {
         $user = User::factory()->create();
         $todo = Todo::factory()->for($user)->create(['title' => 'Base title']);
@@ -83,12 +83,32 @@ class TodoTymxImportPreviewTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('summary.unchanged', 1)
-            ->assertJsonPath('records.0.action', 'unchanged');
+            ->assertJsonPath('records.0.action', 'unchanged')
+            ->assertJsonPath('records.0.changes.0.field', 'description')
+            ->assertJsonPath('records.0.changes.0.resolution', 'server_only');
 
         $this->assertDatabaseHas('todos', [
             'id' => $todo->id,
             'description' => 'Changed only on server',
         ]);
+    }
+
+    public function test_preview_marks_a_proposal_already_applied_on_server_as_current(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create(['title' => 'Base title']);
+        $base = $this->snapshot($todo);
+        $data = array_merge($base, ['title' => 'Updated proposal']);
+        $todo->update(['title' => 'Updated proposal']);
+
+        $response = $this->upload($user, $this->document([
+            $this->record($todo->public_id, $base, $data),
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('summary.unchanged', 1)
+            ->assertJsonPath('records.0.action', 'unchanged')
+            ->assertJsonPath('records.0.changes.0.resolution', 'already_current');
     }
 
     public function test_preview_marks_unknown_and_other_users_public_ids_as_unmatched(): void

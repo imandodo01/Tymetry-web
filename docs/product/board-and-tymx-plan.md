@@ -178,7 +178,7 @@ Work in small, reviewable increments. These states distinguish implementation, t
 | Board M3 | Filter parity, responsive behavior, accessibility, error/empty/loading states and end-to-end acceptance | **Pending acceptance / remaining checks** | Complete the Board acceptance checklist below; do not infer completion from M2 CI. |
 | TYMX M4 | Finalize v1 contract and publish schema | **Implemented on PR #53 branch; CI passed** | Schema: `docs/schemas/tymx-v1.schema.json`; PR #53 exact head `4e4cd60c6f89fb4045613303958deb389e6c7c99`; Actions run #45821229398 passed. Independent review and browser download acceptance remain pending. |
 | TYMX M5 | Selected and all-active Todo export | **Implemented; CI passed; acceptance pending** | PR #53 implements authenticated streamed `.tymx` download and feature tests. Manual browser download/round-trip acceptance and independent review remain pending. |
-| TYMX M6 | Import validation and preview | **Not started** | Validate format/version/encoding/size/record count/fields and show a no-mutation preview before confirmation. |
+| TYMX M6 | Import validation and preview | **Implemented on PR #54; CI pending** | Read-only .tymx upload, strict v1 validation, scoped identity matching, three-way comparison, and preview. Manual acceptance and independent review pending. |
 | TYMX M7 | Conflict-safe import apply, recovery and result reporting | **Not started** | Implement three-way comparison, apply-time authorization/state revalidation, transaction and activity-log behavior, pre-import backup/recovery, and accurate applied/skipped/conflicted reporting. |
 
 ### Board acceptance checklist
@@ -243,7 +243,7 @@ Work in small, reviewable increments. These states distinguish implementation, t
 1. Complete independent review and browser/device acceptance for PR #52 (Board M2/M3), then update this plan with observed results.
 2. Complete independent review and manual browser download/round-trip acceptance for PR #53 (TYMX M4/M5). Keep PR #53 Draft until these gates are satisfied.
 3. Do not merge either PR solely because CI is green. Merge remains a separate explicit decision.
-4. Design TYMX import preview (M6) as a separate workstream. Before implementing apply (M7), finalize transaction boundaries, backup/recovery, apply-time revalidation, and conflict resolution details.
+4. Complete CI, independent review, and manual browser acceptance for TYMX M6 on PR #54. Before implementing apply (M7), finalize transaction boundaries, backup/recovery, apply-time revalidation, and explicit conflict resolution details.
 5. Treat Android identity/API/synchronization as a later, separately scoped integration; do not imply it is part of the Web export PR.
 
 
@@ -259,3 +259,6 @@ The read-only preview implementation is on [PR #54](https://github.com/imandodo0
 - The preview endpoint and UI are read-only. There is no apply/confirm action in M6; execution, revalidation, transaction handling, and ActivityLog writes remain M7.
 - Schema-invalid documents are rejected as a whole rather than partially previewed.
 - CI, independent review, and manual browser acceptance are tracked separately from implementation.
+
+
+M6 implementation detail: when the imported proposal is unchanged from the exported base but the server has since changed, the preview explicitly reports `server_only` so that preserved server edits are visible. A proposal already matching current server state is marked `already_current`. Neither case writes data.
