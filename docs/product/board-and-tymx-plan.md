@@ -234,7 +234,7 @@ Work in small, reviewable increments. These states distinguish implementation, t
 - `main` baseline used for this reconciliation: `92e762fa93a13816a5170fc712c0fabaa5fe8ce4`.
 - The original detailed planning document was retrieved from `main` (blob `dcc24e9cd7731a09f3a65f60c0a480b5b9a265d9`) and used as the basis for this update. The original on `main` remains unchanged until PR #53 is merged.
 - Board M1 is merged in PR #51. Board M2 CI run #45783797313 passed on exact PR head `e05af79fcdc1ffcbdef1a188b38c72fb0f7cf48a`; browser/device acceptance and independent review remain pending.
-- TYMX export/schema CI run #45821229398 passed on exact PR head `4e4cd60c6f89fb4045613303958deb389e6c7c99`; manual browser download/round-trip acceptance and independent review remain pending.
+- TYMX export/schema CI run #45821229398 passed on application-code head `4e4cd60c6f89fb4045613303958deb389e6c7c99`. The documentation reconciliation commit `765eadddd84524056e230389f1bdd585e63c38df` was also verified by CI run #45823096586 on that exact head. Manual browser download/round-trip acceptance and independent review remain pending.
 - PR #53 remains Draft/Open and has not been merged. This documentation update does not merge it.
 - This is a remote GitHub audit. It does not establish the user's local working-tree state, production behavior, or browser/device acceptance.
 
