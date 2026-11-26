@@ -101,3 +101,5 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 - Manual browser acceptance and independent review remain pending. M7 import apply is explicitly not implemented.
 
 - Follow-up hardening commit: UUID format matches the published UUID syntax rather than restricting versions; RFC 3339 timezone offsets are range-checked; server-only and already-current changes are explicitly covered by tests.
+
+- CI run #45826450026 failed on preview tests due to an undefined optional regex capture for the RFC 3339 `Z` timezone. The failure was isolated from frontend build (passed); the timezone parser is being corrected with `PREG_UNMATCHED_AS_NULL` and named captures. Re-run CI on the follow-up commit.

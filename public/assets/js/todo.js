@@ -419,13 +419,31 @@ function renderTymxImportPreview(response) {
         (record.changes || []).forEach(function (change) {
             const item = $('<div class="small mb-1"></div>');
             item.append($('<span class="fw-semibold"></span>').text(change.field + ': '));
+            const fromValue = change.resolution === 'server_only'
+                ? change.base
+                : change.current;
+            const toValue = change.resolution === 'server_only'
+                ? change.current
+                : change.proposed;
             item.append(document.createTextNode(
-                formatTymxValue(change.current) + ' → ' + formatTymxValue(change.proposed)
+                formatTymxValue(fromValue) + ' → ' + formatTymxValue(toValue)
             ));
-            if (change.resolution === 'conflict') {
-                item.append($('<span class="badge text-bg-warning ms-2"></span>').text('Conflict'));
-            } else if (change.resolution === 'proposed') {
-                item.append($('<span class="badge text-bg-success ms-2"></span>').text('Eligible'));
+            const resolutionLabels = {
+                conflict: 'Conflict',
+                proposed: 'Eligible to update',
+                server_only: 'Server changed — preserve',
+                already_current: 'Already current'
+            };
+            const resolutionClasses = {
+                conflict: 'text-bg-warning',
+                proposed: 'text-bg-success',
+                server_only: 'text-bg-light border',
+                already_current: 'text-bg-light border'
+            };
+            if (resolutionLabels[change.resolution]) {
+                item.append($('<span class="badge ms-2"></span>')
+                    .addClass(resolutionClasses[change.resolution])
+                    .text(resolutionLabels[change.resolution]));
             }
             comparison.append(item);
         });

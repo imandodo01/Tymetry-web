@@ -6,7 +6,6 @@ use App\Enums\Todo\TodoPriority;
 use App\Enums\Todo\TodoStatus;
 use App\Models\Todo;
 use App\Models\User;
-use DateTimeImmutable;
 use Illuminate\Validation\ValidationException;
 use JsonException;
 use stdClass;
@@ -291,9 +290,10 @@ class TymxImportPreview
     private function isRfc3339DateTime(string $value): bool
     {
         if (! preg_match(
-            '/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/D',
+            '/^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(?:\\.\\d+)?(?<offset>Z|[+-](?<offset_hour>\\d{2}):(?<offset_minute>\\d{2}))$/D',
             $value,
-            $matches
+            $matches,
+            PREG_UNMATCHED_AS_NULL
         )) {
             return false;
         }
@@ -302,7 +302,8 @@ class TymxImportPreview
             && (int) $matches[4] <= 23
             && (int) $matches[5] <= 59
             && (int) $matches[6] <= 60
-            && ($matches[8] === '' || ((int) $matches[9] <= 23 && (int) $matches[10] <= 59));
+            && ($matches['offset_hour'] === null
+                || ((int) $matches['offset_hour'] <= 23 && (int) $matches['offset_minute'] <= 59));
     }
 
     /**
