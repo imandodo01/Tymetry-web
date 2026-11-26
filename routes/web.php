@@ -37,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::controller(TodoController::class)->prefix('todos')->name('todo.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/board-data', 'boardData')->name('board-data');
 
         Route::post('/bulk/done', 'bulkDone')->name('bulk.done');
         Route::post('/bulk/archive', 'bulkArchive')->name('bulk.archive');

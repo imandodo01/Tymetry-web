@@ -99,6 +99,44 @@ class TodoController extends Controller
         return view('todo.index', compact('statusOption', 'priorityOption'));
     }
 
+    public function boardData(Request $request)
+    {
+        $data = Todo::query()
+            ->where('user_id', auth()->id())
+            ->smartOrder();
+
+        if ($request->filled('search_title')) {
+            $data->where('title', 'like', '%' . $request->string('search_title')->toString() . '%');
+        }
+
+        if ($request->filled('status')) {
+            $data->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('priority')) {
+            $data->where('priority', $request->input('priority'));
+        }
+
+        $todos = $data->get()->map(fn (Todo $todo): array => [
+            'id' => $todo->id,
+            'title' => $todo->title,
+            'status' => $todo->status->value,
+            'status_label' => $todo->status->label(),
+            'priority' => $todo->priority->value,
+            'priority_label' => $todo->priority->label(),
+            'priority_badge' => $todo->priority->badge(),
+            'due_date' => $todo->due_date
+                ? \Carbon\Carbon::parse($todo->due_date)->toDateString()
+                : null,
+            'due_label' => $todo->dueLabel(),
+            'due_status' => $todo->dueStatus(),
+            'due_badge' => $todo->dueBadge(),
+            'edit_url' => route('todo.edit', $todo->id),
+        ]);
+
+        return response()->json(['data' => $todos]);
+    }
+
     public function create()
     {
         $statusOption = TodoStatus::cases();
