@@ -137,3 +137,12 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 3. Perform browser acceptance for selected/all-active export, UTF-8 round-trip, valid/invalid import preview, unmatched IDs, conflict display, and no-mutation behavior when laptop access is available.
 4. Keep M7 import apply unimplemented until its conflict-resolution, apply-time revalidation, transactional boundary, pre-import backup/recovery, audit, and result-reporting contracts are designed and reviewed.
 5. Use commute time for M7 design decisions and test-matrix preparation; do not require repository edits or laptop verification for that design-only session.
+
+
+## TYMX current-head verification — 2026-11-27
+
+- PR #53 [Todo v1 export](https://github.com/imandodo01/Tymetry-web/pull/53): current head `b5fd1569da863748ced1f4feb37a9da1354fc6ba`; synchronized with `main` at `243c4f8f2796a7805973837aa86e5553d85530de`; CI run [#45940988334](https://github.com/imandodo01/Tymetry-web/actions/runs/45940988334) passed (129 tests, 684 assertions, frontend build).
+- PR #54 [read-only import preview](https://github.com/imandodo01/Tymetry-web/pull/54): current head `ee2f317ffda9c879de56b518d6ea0c4179e79ad4`; synchronized with PR #53 head above; compare reports 8 commits ahead and 0 behind; CI run [#45941035271](https://github.com/imandodo01/Tymetry-web/actions/runs/45941035271) passed (140 tests, 742 assertions, frontend build).
+- Both PRs remain Draft/Open and mergeable. No merge to `main`, deployment, or production data change has occurred.
+- Independent source review found and fixed UUID case normalization in M6 preview lookup; regression test included.
+- Manual browser acceptance remains the outstanding gate: selected/all-active export, UTF-8 download/round-trip, valid and invalid preview, unmatched/cross-user IDs, conflict display, and no-mutation behavior.
