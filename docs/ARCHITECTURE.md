@@ -1,6 +1,6 @@
 # Architecture
 
-> Scope: source-based overview of the current Tymetry-web Laravel application. Updated 2026-11-17. This document describes the inspected implementation; it is not a claim that every production integration has been exercised.
+> Scope: source-based overview of the current Tymetry-web Laravel application. Updated 2026-11-27. This document describes the inspected implementation; it is not a claim that every production integration has been exercised.
 
 ## Overview
 
@@ -42,6 +42,13 @@ flowchart TD
 | `resources/views/` | Blade templates for authentication, dashboard, todos, archive, profile, and shared layouts. |
 | `database/migrations/` | Persistent schema, including todos and activity logs. |
 
+## Board and TYMX behavior
+
+- Board is an alternative presentation of the same user-scoped Todo records; it does not create a separate task entity or lifecycle.
+- Board status movement reuses the authenticated Todo status mutation path so validation, ownership, completion metadata, and activity logging remain server-authoritative.
+- TYMX v1 export serializes the supported Todo fields using stable public IDs rather than internal integer database IDs.
+- TYMX M6 import is validation and preview only. It identifies matching records and field-level differences but does not write Todo or ActivityLog data. Import Apply (M7) is not implemented.
+
 ## Todo lifecycle and invariants
 
 1. Authenticated todo queries are scoped to the current user.
@@ -58,6 +65,13 @@ flowchart TD
 - The responsive workspace switches to a horizontal navigation strip at narrow widths; the navigation strip can scroll horizontally. Todo and archive tables use responsive wrappers.
 - Success feedback is presented through the shared application toast. Page-level duplicate success alerts were removed.
 - Todo form labels are associated with their controls; Status/Priority validation errors are displayed inline. Archive selection checkboxes have accessible names.
+
+## Authentication and concurrency notes
+
+- Email OTP challenges use cache-backed coordination; deployed behavior depends on a shared cache store and the configured mail transport.
+- TOTP MFA secrets are encrypted and excluded from normal User serialization; recovery codes are stored as hashes within the encrypted recovery-code attribute.
+- Account-level TOTP attempt checking and verification are serialized by a per-account cache lock (PR #55). Lock contention fails closed.
+- Automated SQLite tests do not prove multi-process behavior with the intended production MySQL/cache combination. See Issues #40 and #41 and the safe-environment verification checklist in TESTING.md.
 
 ## Verification notes
 
