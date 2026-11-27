@@ -24,10 +24,14 @@ Do not treat source presence or a passing CI run as proof of every possible work
 
 ## Features in the current code
 
+The 2026-11-27 integrated baseline also includes the Todo Board (PRs #51–#52), TYMX v1 export (PR #53), read-only TYMX import preview (PR #54), and atomic TOTP account rate limiting (PR #55). Import Apply (M7) and account-timezone runtime behavior are not implemented by these changes.
+
 - Login/logout, email verification, optional two-factor authentication, and password reset.
 - Profile details, password, and two-factor preference updates.
 - Todo creation, editing, status and priority changes, due-date and due-time fields.
 - Todo filtering, smart ordering, dashboard summaries, and activity history.
+- Board view with persisted status changes and accessible status controls.
+- TYMX v1 Todo export and validated read-only import preview.
 - Bulk mark-done, archive, and restore operations.
 - Accessible application navigation, form labels, validation feedback, and task-table controls.
 
