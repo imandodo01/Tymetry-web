@@ -8,6 +8,7 @@ use App\Services\Auth\OtpService;
 use App\Services\Auth\TotpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use RuntimeException;
 use Throwable;
@@ -66,26 +67,43 @@ class OtpController extends Controller
             ? 'totp-login:' . $user->getKey()
             : null;
 
-        if ($totpAttemptKey !== null && RateLimiter::tooManyAttempts($totpAttemptKey, 5)) {
-            return back()->withErrors([
-                'code' => 'Too many invalid authenticator attempts. Please wait before trying again.',
-            ]);
-        }
+        if ($totpAttemptKey !== null) {
+            // Serialize the account-level limit check, TOTP verification, and
+            // counter update so concurrent requests cannot pass the same pre-check.
+            $verificationResult = Cache::lock('totp-login-verification:' . $user->getKey(), 30)
+                ->get(function () use ($totpAttemptKey, $totp, $user, $validated): string {
+                    if (RateLimiter::tooManyAttempts($totpAttemptKey, 5)) {
+                        return 'limited';
+                    }
 
-        $verified = $purpose === 'totp'
-            ? $totp->verifyLogin($user, $validated['code'])
-            : $otp->verify($user, $purpose, $validated['code']);
+                    if (!$totp->verifyLogin($user, $validated['code'])) {
+                        RateLimiter::hit($totpAttemptKey, 60);
 
-        if (!$verified) {
-            if ($totpAttemptKey !== null) {
-                RateLimiter::hit($totpAttemptKey, 60);
+                        return 'invalid';
+                    }
+
+                    RateLimiter::clear($totpAttemptKey);
+
+                    return 'verified';
+                });
+
+            if ($verificationResult === false) {
+                return back()->withErrors([
+                    'code' => 'Another authenticator verification is in progress. Please wait a moment and try again.',
+                ]);
             }
 
-            return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
-        }
+            if ($verificationResult === 'limited') {
+                return back()->withErrors([
+                    'code' => 'Too many invalid authenticator attempts. Please wait before trying again.',
+                ]);
+            }
 
-        if ($totpAttemptKey !== null) {
-            RateLimiter::clear($totpAttemptKey);
+            if ($verificationResult !== 'verified') {
+                return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
+            }
+        } elseif (!$otp->verify($user, $purpose, $validated['code'])) {
+            return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
         }
 
         if ($purpose === 'email_verification') {
