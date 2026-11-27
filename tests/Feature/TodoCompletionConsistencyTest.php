@@ -74,6 +74,36 @@ class TodoCompletionConsistencyTest extends TestCase
     }
 
 
+    public function test_bulk_restore_records_activity_for_each_restored_todo(): void
+    {
+        $user = User::factory()->create();
+        $firstTodo = Todo::factory()->for($user)->create();
+        $firstTodo->delete();
+        $secondTodo = Todo::factory()->for($user)->create();
+        $secondTodo->delete();
+
+        $this->actingAs($user)
+            ->postJson(route('todo.bulk.restore'), [
+                'ids' => [$firstTodo->id, $secondTodo->id],
+            ])
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        foreach ([$firstTodo, $secondTodo] as $todo) {
+            $this->assertDatabaseHas('todos', [
+                'id' => $todo->id,
+                'deleted_at' => null,
+            ]);
+            $this->assertDatabaseHas('activity_logs', [
+                'todo_id' => $todo->id,
+                'user_id' => $user->id,
+                'action' => 'restored',
+            ]);
+        }
+
+        $this->assertDatabaseCount('activity_logs', 2);
+    }
+
     public function test_bulk_restore_rejects_an_empty_selection(): void
     {
         $user = User::factory()->create();

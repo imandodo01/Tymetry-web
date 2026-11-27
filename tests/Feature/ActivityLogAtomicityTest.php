@@ -213,7 +213,120 @@ class ActivityLogAtomicityTest extends TestCase
         $this->assertDatabaseCount('activity_logs', 0);
     }
 
+    public function test_bulk_done_rolls_back_all_todos_when_second_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $firstTodo = Todo::factory()->for($user)->create([
+            'status' => TodoStatus::Pending,
+            'completed_at' => null,
+        ]);
+        $secondTodo = Todo::factory()->for($user)->create([
+            'status' => TodoStatus::Pending,
+            'completed_at' => null,
+        ]);
+
+        $activityLogWrites = 0;
+        $this->failActivityLogWriteOnAttempt(2, $activityLogWrites);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->postJson(route('todo.bulk.done'), [
+                'ids' => [$firstTodo->id, $secondTodo->id],
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertSame(2, $activityLogWrites);
+        foreach ([$firstTodo, $secondTodo] as $todo) {
+            $this->assertDatabaseHas('todos', [
+                'id' => $todo->id,
+                'status' => TodoStatus::Pending->value,
+                'completed_at' => null,
+            ]);
+        }
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_bulk_archive_rolls_back_all_todos_when_second_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $firstTodo = Todo::factory()->for($user)->create();
+        $secondTodo = Todo::factory()->for($user)->create();
+
+        $activityLogWrites = 0;
+        $this->failActivityLogWriteOnAttempt(2, $activityLogWrites);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->postJson(route('todo.bulk.archive'), [
+                'ids' => [$firstTodo->id, $secondTodo->id],
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertSame(2, $activityLogWrites);
+        foreach ([$firstTodo, $secondTodo] as $todo) {
+            $this->assertDatabaseHas('todos', [
+                'id' => $todo->id,
+                'deleted_at' => null,
+            ]);
+        }
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_bulk_restore_rolls_back_all_todos_when_second_activity_log_creation_fails(): void
+    {
+        $user = User::factory()->create();
+        $firstTodo = Todo::factory()->for($user)->create();
+        $firstTodo->delete();
+        $secondTodo = Todo::factory()->for($user)->create();
+        $secondTodo->delete();
+
+        $firstDeletedAt = $firstTodo->getRawOriginal('deleted_at');
+        $secondDeletedAt = $secondTodo->getRawOriginal('deleted_at');
+
+        $activityLogWrites = 0;
+        $this->failActivityLogWriteOnAttempt(2, $activityLogWrites);
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->postJson(route('todo.bulk.restore'), [
+                'ids' => [$firstTodo->id, $secondTodo->id],
+            ]);
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Simulated activity log failure.', $exception->getMessage());
+        }
+
+        $this->assertSame(2, $activityLogWrites);
+        $this->assertDatabaseHas('todos', [
+            'id' => $firstTodo->id,
+            'deleted_at' => $firstDeletedAt,
+        ]);
+        $this->assertDatabaseHas('todos', [
+            'id' => $secondTodo->id,
+            'deleted_at' => $secondDeletedAt,
+        ]);
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
     private function failActivityLogWrites(): void
+    {
+        $writeCount = 0;
+        $this->failActivityLogWriteOnAttempt(1, $writeCount);
+    }
+
+    private function failActivityLogWriteOnAttempt(int $attempt, int &$writeCount): void
+    {
+        Event::listen('eloquent.creating: ' . ActivityLog::class, static function () use ($attempt, &$writeCount): void {
+            $writeCount++;
+
+            if ($writeCount === $attempt) {
+                throw new RuntimeException('Simulated activity log failure.');
+            }
+        });
+    }
     {
         Event::listen('eloquent.creating: ' . ActivityLog::class, static function (): void {
             throw new RuntimeException('Simulated activity log failure.');
