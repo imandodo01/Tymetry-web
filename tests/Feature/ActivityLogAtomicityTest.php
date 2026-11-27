@@ -327,9 +327,4 @@ class ActivityLogAtomicityTest extends TestCase
             }
         });
     }
-    {
-        Event::listen('eloquent.creating: ' . ActivityLog::class, static function (): void {
-            throw new RuntimeException('Simulated activity log failure.');
-        });
-    }
 }
