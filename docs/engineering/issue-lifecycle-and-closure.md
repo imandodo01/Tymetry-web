@@ -98,7 +98,7 @@ Maintainer-reported local results are useful evidence, but must be labeled as ma
 | [#40 TYM-PILOT-04](https://github.com/imandodo01/Tymetry-web/issues/40) | Open | Email OTP multi-process concurrency, deployed cache/mail timeout compatibility, and contention UX disposition remain. |
 | [#41 TYM-PILOT-05](https://github.com/imandodo01/Tymetry-web/issues/41) | Open | PR #55 completed F-01 TOTP account rate-limit atomicity. F-02 replay regression and environment-specific MFA QA remain. |
 | [#42 S08-01](https://github.com/imandodo01/Tymetry-web/issues/42) | Closed — not planned | Local Web/Android baseline verification was not recorded as completed. Do not treat closure as a passing baseline. |
-| [#43 S08-02](https://github.com/imandodo01/Tymetry-web/issues/43) | Closed — not planned | Canonical Task contract finalization/approval was not recorded as completed. Do not treat closure as an approved contract. |
+| [#43 S08-02](https://github.com/imandodo01/Tymetry-web/issues/43) | Closed — not planned (tracker retired) | Maintainer-approved domain decisions are recorded in the Sprint 08 Notion page. Closure retires this tracker; remaining wire-level details, implementation prerequisites, and complete cross-client conformance plan are not all finalized. Reopen/create a scoped follow-up before implementation if needed. |
 | [#44 S08-03 legacy tracker](https://github.com/imandodo01/Tymetry-web/issues/44) | Closed — not planned | Retired in favor of the standalone S08-03 contract document and PR #47. |
 | [#47 S08-03 contract](https://github.com/imandodo01/Tymetry-web/pull/47) | Integrated documentation | Contract proposal is documented; account-timezone runtime implementation remains separate work. |
 

@@ -67,7 +67,7 @@ Closed historical work:
 - #37 TYM-PILOT-01 completed — Tier 1 CI evidence review; separate Review/QA not required.
 - #38 TYM-PILOT-02 completed — exact-SHA timezone smart-order regression/CI evidence reviewed.
 - #42 S08-01 closed as not planned — local Web/Android baseline evidence was not completed in that issue; do not treat closure as a passing baseline.
-- #43 S08-02 closed as not planned — canonical Task contract finalization/approval was not completed in that issue; do not treat closure as an approved contract.
+- #43 S08-02 closed as not planned as a tracker. Maintainer-approved Task-domain and Project/Tag decisions are recorded in the Sprint 08 Notion page and remain valid inputs. Closure does not mean every wire-level detail, implementation prerequisite, or cross-client conformance plan is complete.
 - #44 legacy S08-03 tracker closed as not planned; standalone proposal retained separately.
 - PR #47 is the standalone S08-03 date/time/timezone contract document. It records due_time as informational, canonical IANA account timezone, default Asia/Jakarta, and API field time_zone; it does not implement account-timezone runtime behavior.
 
@@ -120,4 +120,4 @@ Before M7 implementation, decide conflict resolution, apply-time revalidation, t
 
 ## Next action
 
-Documentation and issue-body reconciliation are committed on the PR #56 branch; CI run #45960158848 passed on exact head 4575272f72e59dc46cb5a23b6463030dceabbfed. Next: maintainer reviews and merges PR #56. After merge, reconcile the Notion Sprint 08 page against the GitHub source of truth. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
+Documentation and issue-body reconciliation PR #56 was merged into main as commit 27f77770d6b2f03477d1c3f0a8830c8af1dceb15 after exact-head CI run #45960272500 passed. The Sprint 08 Notion page has been synchronized with that merge. PR #57 corrects the S08-02 tracker disposition wording so approved maintainer decisions remain authoritative while unresolved wire-level and verification work stays explicit. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
