@@ -211,6 +211,11 @@ class TotpAuthenticationTest extends TestCase
             'user_id' => $user->id,
             'action' => 'mfa_totp_verified',
         ]);
+
+        // Reusing the same valid code must be rejected after its counter is stored.
+        $this->assertFalse(app(TotpService::class)->verifyLogin($user, '287082'));
+        $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
+        $this->assertDatabaseCount('activity_logs', 1);
     }
 
     public function test_totp_verification_input_supports_alphanumeric_recovery_codes(): void
