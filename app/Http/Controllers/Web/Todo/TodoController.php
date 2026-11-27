@@ -138,6 +138,63 @@ class TodoController extends Controller
         return response()->json(['data' => $todos]);
     }
 
+    public function export(Request $request)
+    {
+        $validated = $request->validate([
+            'selection' => ['required', Rule::in(['selected', 'all_active'])],
+            'ids' => ['required_if:selection,selected', 'prohibited_unless:selection,selected', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+
+        $selection = $validated['selection'];
+        $todos = auth()->user()->todos()->orderBy('id');
+
+        if ($selection === 'selected') {
+            $ids = array_map('intval', $validated['ids']);
+            $todos->whereIn('id', $ids);
+            if ((clone $todos)->count() !== count($ids)) abort(404);
+        }
+
+        $exportedAt = now()->utc();
+
+        return response()->streamDownload(function () use ($todos, $selection, $exportedAt): void {
+            echo '{"format":"tymx","version":1,"exported_at":';
+            echo json_encode($exportedAt->toIso8601String(), JSON_THROW_ON_ERROR);
+            echo ',"source":{"application":"Tymetry"},"selection":';
+            echo json_encode($selection, JSON_THROW_ON_ERROR);
+            echo ',"todos":[';
+            $first = true;
+
+            foreach ($todos->cursor() as $todo) {
+                $fields = [
+                    'title' => $todo->title,
+                    'description' => $todo->description,
+                    'status' => match ($todo->status) {
+                        TodoStatus::Pending => 'pending',
+                        TodoStatus::Progress => 'in_progress',
+                        TodoStatus::Done => 'done',
+                    },
+                    'priority' => match ($todo->priority) {
+                        TodoPriority::Low => 'low',
+                        TodoPriority::Medium => 'medium',
+                        TodoPriority::High => 'high',
+                    },
+                    'due_date' => $todo->due_date ? \Carbon\Carbon::parse($todo->due_date)->toDateString() : null,
+                    'due_time' => $todo->due_time ? substr((string) $todo->due_time, 0, 5) : null,
+                ];
+                $record = ['public_id' => $todo->public_id, 'base' => $fields, 'data' => $fields];
+                echo ($first ? '' : ',') . json_encode($record, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $first = false;
+            }
+
+            echo ']}';
+        }, 'tymetry-' . $exportedAt->format('Ymd-His') . '.tymx', [
+            'Content-Type' => 'application/json; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function create()
     {
         $statusOption = TodoStatus::cases();

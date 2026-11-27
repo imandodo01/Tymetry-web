@@ -10,6 +10,7 @@ function toggleBulkButtons() {
     const checkAll = $('#checkAll');
 
     $('#bulkArchive, #bulkDone').prop('disabled', !hasSelected);
+    $('#exportSelectedTodos').prop('disabled', !hasSelected);
     $('#selectedTodoCount').text(selectedCount + ' selected');
 
     checkAll.prop('checked', totalCount > 0 && selectedCount === totalCount);
