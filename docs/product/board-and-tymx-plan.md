@@ -2,7 +2,7 @@
 
 **Status:** Active delivery plan — implementation and acceptance tracked separately  
 **Reconciled:** 2026-11-26  
-**Canonical product baseline:** `main` at `92e762fa93a13816a5170fc712c0fabaa5fe8ce4`  
+**Canonical product baseline:** `main` at `243c4f8f2796a7805973837aa86e5553d85530de`  
 **Documentation update branch:** `feature/m4-tymx-v1-export` (PR #53)
 
 > This document preserves the original product requirements while reflecting current implementation and verification evidence. A milestone is not accepted merely because code exists or CI passes. Browser/device acceptance, independent review, and merge status are tracked separately. The original planning source remains available on `main` until this documentation change is merged.
@@ -174,11 +174,11 @@ Work in small, reviewable increments. These states distinguish implementation, t
 | Milestone | Scope | Current state | Evidence / exit condition |
 |---|---|---|---|
 | Board M1 | Board layout, view switching, columns, card presentation | **Merged** | PR #51 merged into `main`. |
-| Board M2 | Persisted status movement, drag/drop, non-drag selector | **Implemented; CI passed; acceptance pending** | PR #52 Draft/Open at `e05af79fcdc1ffcbdef1a188b38c72fb0f7cf48a`; Actions run #45783797313 passed on that exact SHA. Browser/device acceptance and independent review remain pending. |
+| Board M2 | Persisted status movement, drag/drop, non-drag selector | **Merged; CI passed** | PR #52 was squash-merged to `main` as `2e2f65a845495a37ccfcb3a53cc6368ef79797bb`; merged-main CI run #45934872260 passed. Manual browser/device acceptance was not recorded separately. |
 | Board M3 | Filter parity, responsive behavior, accessibility, error/empty/loading states and end-to-end acceptance | **Pending acceptance / remaining checks** | Complete the Board acceptance checklist below; do not infer completion from M2 CI. |
-| TYMX M4 | Finalize v1 contract and publish schema | **Implemented on PR #53 branch; CI passed** | Schema: `docs/schemas/tymx-v1.schema.json`; PR #53 exact head `4e4cd60c6f89fb4045613303958deb389e6c7c99`; Actions run #45821229398 passed. Independent review and browser download acceptance remain pending. |
-| TYMX M5 | Selected and all-active Todo export | **Implemented; CI passed; acceptance pending** | PR #53 implements authenticated streamed `.tymx` download and feature tests. Manual browser download/round-trip acceptance and independent review remain pending. |
-| TYMX M6 | Import validation and preview | **Not started** | Validate format/version/encoding/size/record count/fields and show a no-mutation preview before confirmation. |
+| TYMX M4 | Finalize v1 contract and publish schema | **Implemented; current-main synchronized; CI passed** | Schema: `docs/schemas/tymx-v1.schema.json`; PR #53 synchronized head `209f558897d4375126e394d0abcc9f6a4ac95ad9`; Actions run #45940850968 passed (129 tests, 684 assertions; frontend build passed). Independent review and browser download acceptance remain pending. |
+| TYMX M5 | Selected and all-active Todo export | **Implemented; current-main synchronized; CI passed; acceptance pending** | PR #53 implements authenticated streamed `.tymx` download and feature tests. Exact synchronized head `209f558897d4375126e394d0abcc9f6a4ac95ad9`; Actions run #45940850968 passed. Manual browser download/round-trip acceptance and independent review remain pending. |
+| TYMX M6 | Import validation and preview | **Implemented on PR #54; integrated CI pending** | Read-only validation, identity matching, three-way preview and UI are implemented. Case-insensitive UUID lookup fix passed on code head `cf9769bbb5d3163ac87cd6f557b339e605f48ca1` (130 tests, 709 assertions, frontend build); current-main synchronized head `a542a2449cc9a77b4e6844c32c293cb886de407b` is awaiting CI. Manual browser acceptance and independent review remain pending. |
 | TYMX M7 | Conflict-safe import apply, recovery and result reporting | **Not started** | Implement three-way comparison, apply-time authorization/state revalidation, transaction and activity-log behavior, pre-import backup/recovery, and accurate applied/skipped/conflicted reporting. |
 
 ### Board acceptance checklist
