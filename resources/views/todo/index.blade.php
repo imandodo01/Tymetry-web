@@ -71,6 +71,12 @@
                 <button type="button" class="btn btn-outline-dark btn-sm" id="bulkArchive" disabled>
                     Archive
                 </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="exportSelectedTodos" data-export-url="{{ route('todo.export') }}" disabled>
+                    Export selected
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="exportAllTodos">
+                    Export all active
+                </button>
                 <small class="text-muted ms-auto" id="selectedTodoCount" aria-live="polite">0 selected</small>
             </div>
             <div id="todoTableLoading" class="todo-table-loading d-none" role="status" aria-live="polite">
@@ -167,4 +173,5 @@
 @push('scripts')
 <script src="{{ asset('assets/vendor/datatables/datatables.min.js') }}"></script>
 <script src="{{ asset('assets/js/todo.js') }}"></script>
+<script src="{{ asset('assets/js/tymx-export.js') }}"></script>
 @endpush
