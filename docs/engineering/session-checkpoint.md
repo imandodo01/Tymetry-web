@@ -1,9 +1,9 @@
 # Tymetry Engineering Session Checkpoint
 
 > Updated: 2026-11-27 (Asia/Jakarta)
-> Status: Documentation reconciliation prepared — PR #56 ready for maintainer review/merge
+> Status: QA pilot review in progress — PRs #58–#60 remain draft pending environment-specific verification
 > Verified repository: imandodo01/Tymetry-web
-> Verified main HEAD at checkpoint start: a2d05f17c520a806041ac20d12ddb05e356d273d
+> Verified main HEAD at checkpoint refresh: e34ed6351be1ac67539040246f371c0b6158d647
 
 ## Purpose
 
@@ -14,10 +14,10 @@ This is the durable engineering handoff. GitHub Issues remain the operational so
 - Web repository: https://github.com/imandodo01/Tymetry-web
 - Android repository: https://github.com/imandodo01/Tymetri
 - Default branch: main
-- Main HEAD verified from GitHub commit metadata: a2d05f17c520a806041ac20d12ddb05e356d273d (2026-11-27 07:29:29 UTC).
-- Current documentation branch: docs/reconcile-issue-lifecycle-2026-11-27.
-- Documentation PR: #56, head 4575272f72e59dc46cb5a23b6463030dceabbfed; CI run #45960158848 passed (PHP dependency install, frontend dependency install/build, full Laravel test suite).
-- Remote GitHub inspection only; local checkout, working-tree state, and local test execution were not available. Do not infer local cleanliness or claim local checks.
+- Main HEAD verified from GitHub commit metadata: e34ed6351be1ac67539040246f371c0b6158d647 (2026-11-27).
+- PR #56 merged as 27f77770d6b2f03477d1c3f0a8830c8af1dceb15; PR #57 merged as e34ed6351be1ac67539040246f371c0b6158d647.
+- Current QA review branch: docs/qa-pilot-status-checkpoint-2026-11-27.
+- Remote GitHub inspection only; no local checkout, working-tree state, or local test execution was available. Do not infer local cleanliness or claim local checks.
 
 ## Working rules
 
@@ -58,9 +58,9 @@ PR #55 exact synchronized head 030ca39226ccba80a0827484de224708e084c067 passed G
 | Issue | Work item | Current state | Next action |
 |---|---|---|---|
 | [#36](https://github.com/imandodo01/Tymetry-web/issues/36) | TYM-OPS-001 multi-chat workflow | Open | Record role-chat adoption and practical pilot protocol validation before closure. |
-| [#39](https://github.com/imandodo01/Tymetry-web/issues/39) | TYM-PILOT-03 Todo/ActivityLog integrity | Open | Add bulk Done/Archive/Restore mid-batch rollback tests and successful bulk Restore ActivityLog assertion; QA exact candidate SHA. |
-| [#40](https://github.com/imandodo01/Tymetry-web/issues/40) | TYM-PILOT-04 OTP concurrency | Open | Disposition mail timeout vs 120s lease, contention UX, shared-cache/MySQL multi-process checks in safe environment. |
-| [#41](https://github.com/imandodo01/Tymetry-web/issues/41) | TYM-PILOT-05 TOTP MFA | Open | PR #55 resolves F-01. Add direct replay regression (same TOTP code second use rejected); decide/record concurrent duplicate-code and safe-environment MFA QA. |
+| [#39](https://github.com/imandodo01/Tymetry-web/issues/39) | TYM-PILOT-03 Todo/ActivityLog integrity | Open | PR #58 adds bulk Done/Archive/Restore mid-batch rollback tests and bulk Restore audit assertion. CI PASS on 0adcc9a4f0ac7ab1ce6aa89d995c1695a0ea8d4b; QA source review completed, independent local execution NOT TESTED. Keep PR draft pending QA execution/disposition. |
+| [#40](https://github.com/imandodo01/Tymetry-web/issues/40) | TYM-PILOT-04 OTP concurrency | Open | PR #59 distinguishes Busy from invalid/expired OTP; CI PASS on 5d6765045d1937cebce23e564ac27f2f347fb558; source review completed. F-01 target mail total timeout/shared-cache verification remains a release blocker. |
+| [#41](https://github.com/imandodo01/Tymetry-web/issues/41) | TYM-PILOT-05 TOTP MFA | Open | PR #55 resolves account-rate-limit atomicity; PR #60 adds sequential replay regression and CI PASS on 0868f49a6643010859b6efa1a1fba59f0c355f6c. Source review completed; MySQL concurrency, enrollment, recovery, and legacy email-MFA QA remain. |
 
 Closed historical work:
 
@@ -84,7 +84,7 @@ No open PRs were returned by the repository's current GitHub open-PR search at c
 | S08-05 Cross-client Test Scenarios | Not verified as completed |
 | S08-06 ADR & Implementation Plan | Not verified as completed |
 
-Do not infer Sprint 08 completion from the closure of #42/#43 or the existence of PR #47. Reconcile the Notion Sprint 08 page and Android repository before planning implementation.
+Do not infer Sprint 08 completion from the closure of #42/#43 or the existence of PR #47. The Notion Sprint 08 page was synchronized on 2026-11-27; Android local baseline and the remaining contract work still need evidence.
 
 ## TYMX roadmap status
 
@@ -120,4 +120,10 @@ Before M7 implementation, decide conflict resolution, apply-time revalidation, t
 
 ## Next action
 
-Documentation and issue-body reconciliation PR #56 was merged into main as commit 27f77770d6b2f03477d1c3f0a8830c8af1dceb15 after exact-head CI run #45960272500 passed. The Sprint 08 Notion page has been synchronized with that merge. PR #57 corrects the S08-02 tracker disposition wording so approved maintainer decisions remain authoritative while unresolved wire-level and verification work stays explicit. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
+1. On a local development checkout, independently run PR #58 focused tests (`ActivityLogAtomicityTest` and `TodoCompletionConsistencyTest`) on exact SHA 0adcc9a4f0ac7ab1ce6aa89d995c1695a0ea8d4b; record the environment and result. If safe MySQL verification is required, use a disposable test database, never production.
+2. Independently verify PR #60 sequential replay regression and review the MySQL concurrency test requirement/disposition on a safe MySQL environment.
+3. Verify PR #59 contention behavior and inspect the actual target mail provider's total-send timeout and shared cache lock configuration in a safe environment. SMTP socket timeout alone is not sufficient evidence.
+4. Record authenticator enrollment/confirmation, recovery-code one-time use, and legacy email-MFA compatibility as PASS or NOT TESTED with reason.
+5. Keep #36 open until the user confirms adoption of the Independent Review and QA chats and the pilot protocol validation is recorded.
+
+Current session performed remote source/evidence review only. No local PHPUnit, real multi-process test, MySQL concurrency test, live SMTP test, authenticator-device test, or production inspection was performed. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
