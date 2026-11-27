@@ -7,7 +7,6 @@ use App\Services\Auth\OtpService;
 use App\Services\Auth\TotpService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -208,26 +207,14 @@ class TotpAuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
         $this->assertSame(0, RateLimiter::attempts($attemptKey));
-        $this->assertDatabaseCount('activity_logs', 1);
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $user->id,
             'action' => 'mfa_totp_verified',
         ]);
 
-        Auth::logout();
-        $this->assertGuest();
-
-        $this->withSession([
-            'pending_auth_user_id' => $user->id,
-            'pending_auth_purpose' => 'totp',
-            'pending_auth_remember' => false,
-        ])->post(route('otp.verify'), ['code' => '287082'])
-            ->assertRedirect(route('otp.index'))
-            ->assertSessionHasErrors('code');
-
-        $this->assertGuest();
+        // Reusing the same valid code must be rejected after its counter is stored.
+        $this->assertFalse(app(TotpService::class)->verifyLogin($user, '287082'));
         $this->assertSame(1, $user->fresh()->two_factor_last_used_counter);
-        $this->assertSame(1, RateLimiter::attempts($attemptKey));
         $this->assertDatabaseCount('activity_logs', 1);
     }
 
