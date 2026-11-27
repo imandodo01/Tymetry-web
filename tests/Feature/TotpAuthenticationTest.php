@@ -7,6 +7,7 @@ use App\Services\Auth\OtpService;
 use App\Services\Auth\TotpService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -263,6 +264,40 @@ class TotpAuthenticationTest extends TestCase
 
         $this->assertSame(5, RateLimiter::attempts($attemptKey));
         $this->assertGuest();
+    }
+
+    public function test_totp_verification_fails_closed_when_account_lock_is_contended(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            'two_factor_enabled' => true,
+        ]);
+        $user->forceFill([
+            'two_factor_method' => 'totp',
+            'two_factor_secret' => self::RFC_SECRET,
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+
+        $attemptKey = 'totp-login:' . $user->getKey();
+        RateLimiter::clear($attemptKey);
+
+        $lock = Cache::lock('totp-login-verification:' . $user->getKey(), 30);
+        $this->assertTrue($lock->get());
+
+        try {
+            $this->withSession([
+                'pending_auth_user_id' => $user->getKey(),
+                'pending_auth_purpose' => 'totp',
+            ])->post(route('otp.verify'), ['code' => '000000'])
+                ->assertSessionHasErrors([
+                    'code' => 'Another authenticator verification is in progress. Please wait a moment and try again.',
+                ]);
+
+            $this->assertSame(0, RateLimiter::attempts($attemptKey));
+            $this->assertGuest();
+        } finally {
+            $lock->release();
+        }
     }
 
     public function test_incomplete_totp_enrollment_cannot_authenticate(): void
