@@ -120,4 +120,4 @@ Before M7 implementation, decide conflict resolution, apply-time revalidation, t
 
 ## Next action
 
-Documentation and issue-body reconciliation are committed on the PR #56 branch; CI run #45960158848 passed on exact head 4575272f72e59dc46cb5a23b6463030dceabbfed. Next: maintainer reviews and merges PR #56. After merge, reconcile the Notion Sprint 08 page against the GitHub source of truth. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
+Documentation and issue-body reconciliation PR #56 was merged into main as commit 27f77770d6b2f03477d1c3f0a8830c8af1dceb15 after exact-head CI run #45960272500 passed. The Sprint 08 Notion page has been synchronized with that merge. PR #57 corrects the S08-02 tracker disposition wording so approved maintainer decisions remain authoritative while unresolved wire-level and verification work stays explicit. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.
