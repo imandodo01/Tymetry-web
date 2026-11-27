@@ -4,7 +4,7 @@ Tymetry is a Laravel application for managing personal tasks, priorities, due da
 
 ## Current status
 
-The current project checkpoint is **Sprint 07 — Foundation Alignment**. Backend/API readiness, web UX, and technical-debt audits have been completed at source level. The first implementation slice remains subject to contract decisions and browser verification.
+**Current implementation baseline (2026-11-27):** Sprint 06 core stabilization is complete. Sprint 07 foundation audits are recorded. Board M1/M2, TYMX v1 Export (PR #53), and read-only Import Preview (PR #54) are integrated into main. TOTP account rate-limit atomicity (PR #55) is integrated. Sprint 08 cross-client contracts remain in planning/verification; account-timezone runtime behavior and Android synchronization are not implied to be implemented.
 
 The previous **Sprint 06 — Core Stabilization** work is complete and merged into `main`. Do not treat source presence or a passing CI run as proof of every workflow; see the testing guide for the verification boundary.
 
@@ -14,6 +14,8 @@ The previous **Sprint 06 — Core Stabilization** work is complete and merged in
 - Profile, password, and two-factor preference management.
 - Task creation and editing, with status, priority, due date, and due time.
 - Task filtering, smart ordering, dashboard summaries, and activity history.
+- Board view with persisted status changes and accessible status controls.
+- TYMX v1 Todo export and validated read-only import preview.
 - Bulk completion, archive, and restore operations.
 - Accessible navigation, form labels, validation feedback, and task-table controls.
 
@@ -57,12 +59,20 @@ npm run build
 
 For the complete verification scope, manual smoke checklist, and known verification boundaries, see [docs/TESTING.md](docs/TESTING.md).
 
+## Current engineering follow-up
+
+- Open QA/workflow issues: [#36](https://github.com/imandodo01/Tymetry-web/issues/36), [#39](https://github.com/imandodo01/Tymetry-web/issues/39), [#40](https://github.com/imandodo01/Tymetry-web/issues/40), [#41](https://github.com/imandodo01/Tymetry-web/issues/41).
+- TYMX M7 Import Apply is not implemented; M6 remains read-only preview.
+- Production readiness is not established by merged PRs or CI alone. See the [issue lifecycle and closure policy](docs/engineering/issue-lifecycle-and-closure.md) and [testing guide](docs/TESTING.md).
+
 ## Documentation
 
 - [Project overview and setup](docs/README.md)
 - [Architecture overview](docs/ARCHITECTURE.md)
 - [Testing guide and regression checklist](docs/TESTING.md)
 - [Code review findings](docs/REVIEW-FINDINGS.md)
+- [Issue lifecycle and closure policy](docs/engineering/issue-lifecycle-and-closure.md)
+- [Engineering session checkpoint](docs/engineering/session-checkpoint.md)
 
 ---
 

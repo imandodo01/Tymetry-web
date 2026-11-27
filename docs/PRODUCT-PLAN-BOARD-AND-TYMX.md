@@ -1,7 +1,7 @@
 # Board and TYMX Exchange — Product and Technical Plan
 
-> Status: Planning baseline — not implemented  
-> Last updated: 2026-11-26  
+> Status: Partially delivered — see implementation status below  
+> Last updated: 2026-11-27  
 > Repository baseline reviewed: `999fcd5e8adfd0b45d72716a3ae306e7c12e5911`
 
 This document records the agreed direction for the next Tymetry Web improvements. It is a planning and contract document, not evidence that the features have been implemented.
@@ -179,13 +179,13 @@ The final schema must define required/optional fields, enum wire values, null ha
 
 | Milestone | Scope | Dependency | Status |
 |---|---|---|---|
-| M1 | Board layout, columns, and readable cards | Existing Todo model and enums | Planned |
-| M2 | Persisted status movement and accessible alternative controls | M1; existing status mutation behavior | Planned |
-| M3 | Filter parity, responsive behavior, loading/empty/error states, and tests | M1–M2 | Planned |
-| M4 | Freeze TYMX v1 schema and validation contract | Existing task/date-time contract | Planned |
-| M5 | Export selected/all supported tasks | M4 | Planned |
-| M6 | Import parsing, preview, identity/conflict handling, and confirmation | M4 | Planned |
-| M7 | Import execution, reporting, and security/regression tests | M6 | Planned |
+| M1 | Board layout, columns, and readable cards | Existing Todo model and enums | Integrated — PR #51 |
+| M2 | Persisted status movement and accessible alternative controls | M1; existing status mutation behavior | Integrated — PR #52 |
+| M3 | Filter parity, responsive behavior, loading/empty/error states, and tests | M1–M2 | Core Board scope integrated; see #51/#52 acceptance evidence |
+| M4 | Freeze TYMX v1 schema and validation contract | Existing task/date-time contract | Integrated in PR #53 |
+| M5 | Export selected/all supported tasks | M4 | Integrated — PR #53 |
+| M6 | Import parsing, preview, identity/conflict handling, and confirmation | M4 | Integrated as read-only preview — PR #54 |
+| M7 | Import execution, reporting, and security/regression tests | M6 | Not implemented — design required before implementation |
 
 Board work is prioritized before TYMX implementation. Schema decisions should be finalized before building import/export so that the file format does not become an accidental implementation detail.
 
@@ -214,6 +214,19 @@ Before production release, verify at minimum:
 - Security-sensitive configuration and secret handling.
 
 Do not use production as a substitute for a staging or disposable verification environment.
+
+## 6.1 Delivery status update — 2026-11-27
+
+The original plan above is retained as the product/technical direction. Delivery status is updated here to avoid rewriting historical decisions:
+
+- Board M1 and M2 are integrated into main through PRs #51 and #52.
+- Todo due-indicator/completion semantics were corrected and tested in subsequent mainline commits.
+- TYMX v1 Export (M5) is integrated through PR #53.
+- TYMX M6 import validation and preview is integrated through PR #54. It is strictly read-only and does not mutate Todo or ActivityLog.
+- TOTP account rate-limit atomicity is integrated through PR #55; this is security work separate from TYMX.
+- M7 Import Apply remains unimplemented. The design gates in Section 3.5 and the issue lifecycle policy remain applicable.
+
+Implementation, automated verification, browser acceptance, and production readiness are distinct. Refer to [TESTING.md](TESTING.md), [REVIEW-FINDINGS.md](REVIEW-FINDINGS.md), and [issue lifecycle/closure policy](engineering/issue-lifecycle-and-closure.md).
 
 ## 7. Current implementation baseline and evidence boundary
 

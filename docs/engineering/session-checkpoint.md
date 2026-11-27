@@ -1,148 +1,123 @@
 # Tymetry Engineering Session Checkpoint
 
-> Updated: 2026-11-24 (Asia/Jakarta)  
-> Status: In Progress — current mainline synchronized; remaining PRs under review
+> Updated: 2026-11-27 (Asia/Jakarta)
+> Status: Documentation reconciliation prepared — PR #56 ready for maintainer review/merge
+> Verified repository: imandodo01/Tymetry-web
+> Verified main HEAD at checkpoint start: a2d05f17c520a806041ac20d12ddb05e356d273d
 
-## Project
+## Purpose
+
+This is the durable engineering handoff. GitHub Issues remain the operational source of truth for actionable work; Notion contains planning and decision context. Do not maintain competing mutable backlogs.
+
+## Repository baseline
 
 - Web repository: https://github.com/imandodo01/Tymetry-web
 - Android repository: https://github.com/imandodo01/Tymetri
-- Default branch: `main`
-- Verified main HEAD at refresh: `696abc7a7341972256b5eec4d03a7372edd838ae`
-- Local checkout / working-tree state: not available in this remote GitHub session. Do not infer local cleanliness.
-- This file is a repository handoff checkpoint; Notion page **Tymetry Check List** remains the cross-chat checklist.
+- Default branch: main
+- Main HEAD verified from GitHub commit metadata: a2d05f17c520a806041ac20d12ddb05e356d273d (2026-11-27 07:29:29 UTC).
+- Current documentation branch: docs/reconcile-issue-lifecycle-2026-11-27.
+- Documentation PR: #56, head 4575272f72e59dc46cb5a23b6463030dceabbfed; CI run #45960158848 passed (PHP dependency install, frontend dependency install/build, full Laravel test suite).
+- Remote GitHub inspection only; local checkout, working-tree state, and local test execution were not available. Do not infer local cleanliness or claim local checks.
 
 ## Working rules
 
-- Complete clearly scoped implementation without stopping for routine decisions.
-- Keep implementation, independent review, QA, and maintainer acceptance responsibilities distinct.
-- Bind CI/test evidence to exact commit SHAs and the tested PR merge tree.
-- Do not merge or deploy automatically unless the maintainer has authorized it.
-- Do not use production as a substitute for a missing staging environment.
-- Record unverified behavior and unresolved product decisions explicitly.
+- Keep Development, Independent Review, QA & Verification, and maintainer acceptance distinct.
+- Bind CI and test evidence to exact commit SHA and environment.
+- A merged implementation PR does not automatically close a separate QA/workflow issue.
+- Do not use production as a substitute for staging/disposable verification.
+- Preserve unverified behavior, blockers, and residual risks explicitly.
+- Follow [Issue Lifecycle and Closure Policy](issue-lifecycle-and-closure.md) for issue updates and closure decisions.
 
-## Verified mainline state
+## Integrated into main
 
-Merged into `main`:
+Confirmed merged PRs relevant to the latest work:
 
-- PR #30 — atomic Todo mutations and ActivityLog writes.
-- PR #31 — OTP challenge concurrency protection.
-- PR #32 — authenticator-based TOTP MFA, account-keyed failed-attempt limiting, and recovery-code input support.
-- PR #33 — CI environment bootstrap.
-- PR #34 — Todo ownership authorization regression tests.
-- PR #35 — application-timezone-aware Todo smart ordering and discriminating regression coverage.
-- PR #46 — UUIDv7 public identities, update immutability, and migration backfill tests.
-- PR #48 — ActivityLog rollback regression coverage.
+- #50 — Board and TYMX product planning.
+- #51 — Todo Board View (M1).
+- #52 — persistent Board status changes / drag and drop (M2).
+- #53 — TYMX v1 Todo Export.
+- #54 — TYMX v1 read-only Import Preview (M6).
+- #55 — atomic TOTP account rate limiting (F-01).
+- Earlier foundations include #30–#49: atomic Todo/ActivityLog mutations, OTP challenge concurrency, TOTP MFA, ownership tests, timezone-aware smart ordering, UUIDv7 public IDs, rollback coverage, Task input normalization, and the standalone S08-03 contract.
 
-Latest main HEAD: `696abc7a7341972256b5eec4d03a7372edd838ae` (PR #48 squash merge).
+PR #55 exact synchronized head 030ca39226ccba80a0827484de224708e084c067 passed GitHub Actions run [#45956168384](https://github.com/imandodo01/Tymetry-web/actions/runs/45956168384): PHP dependencies, frontend install/build, and full php artisan test passed. Maintainer-reported local checks were run on the pre-sync head, not rerun on the synchronized head.
 
-## Current change — remove unused sample page
+## Current product capability and boundaries
 
-- Branch: `chore/remove-unused-sample-route`
-- PR: [#49 — remove unused sample page](https://github.com/imandodo01/Tymetry-web/pull/49)
-- Changes:
-  - Remove `GET /sample` from `routes/web.php`.
-  - Delete `resources/views/sample.blade.php`.
-  - Refresh this checkpoint with current mainline and PR status.
-- The route update was reconciled against current `main` so the TOTP routes added by PR #32 are preserved.
-- The prior project checkpoint dated 2026-11-20 records the maintainer's acceptance that the unused `/sample` route and its Blade view may be removed. That is the authorization basis for this PR.
-- Current branch must be synchronized with main at `696abc7a7341972256b5eec4d03a7372edd838ae` and rerun CI before merge.
-- No local `route:list`, PHPUnit, frontend build, or browser smoke test was run in this remote session.
+- Todo List and Board views share the same Todo records.
+- Board status changes persist through the existing authenticated status endpoint.
+- Due indicators distinguish completed tasks from overdue tasks.
+- TYMX v1 export supports selected and all-active Todo export.
+- TYMX M6 supports validated, read-only import preview with identity matching and three-way conflict display. It does not mutate Todo or ActivityLog data.
+- TYMX M7 Import Apply is not implemented.
+- TOTP MFA, recovery codes, account-level attempt limiting, and lock-contention fail-closed behavior are integrated.
+- Account-level timezone runtime behavior, cross-client API integration, Android offline synchronization, and production operational readiness are not established by these merges.
 
-## Remaining active pull requests — 2026-11-24
+## Current open issues and next actions
 
-| PR | Scope | Current state | Remaining action |
+| Issue | Work item | Current state | Next action |
 |---|---|---|---|
-| [#45](https://github.com/imandodo01/Tymetry-web/pull/45) | Task input normalization | Draft, base `main` | Remove stale checkpoint from its diff; synchronize and rerun CI; mark ready after review |
-| [#47](https://github.com/imandodo01/Tymetry-web/pull/47) | Date/time/timezone contract documentation | Open, base `main` | Standalone documentation proposal; acceptance gap for alternatives/consequences still needs resolution |
-| [#49](https://github.com/imandodo01/Tymetry-web/pull/49) | Remove unused sample page | Draft, base `main` | Current main synchronization, CI, then ready/merge |
+| [#36](https://github.com/imandodo01/Tymetry-web/issues/36) | TYM-OPS-001 multi-chat workflow | Open | Record role-chat adoption and practical pilot protocol validation before closure. |
+| [#39](https://github.com/imandodo01/Tymetry-web/issues/39) | TYM-PILOT-03 Todo/ActivityLog integrity | Open | Add bulk Done/Archive/Restore mid-batch rollback tests and successful bulk Restore ActivityLog assertion; QA exact candidate SHA. |
+| [#40](https://github.com/imandodo01/Tymetry-web/issues/40) | TYM-PILOT-04 OTP concurrency | Open | Disposition mail timeout vs 120s lease, contention UX, shared-cache/MySQL multi-process checks in safe environment. |
+| [#41](https://github.com/imandodo01/Tymetry-web/issues/41) | TYM-PILOT-05 TOTP MFA | Open | PR #55 resolves F-01. Add direct replay regression (same TOTP code second use rejected); decide/record concurrent duplicate-code and safe-environment MFA QA. |
 
-PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
+Closed historical work:
 
-## Review findings and operational limitations
+- #37 TYM-PILOT-01 completed — Tier 1 CI evidence review; separate Review/QA not required.
+- #38 TYM-PILOT-02 completed — exact-SHA timezone smart-order regression/CI evidence reviewed.
+- #42 S08-01 closed as not planned — local Web/Android baseline evidence was not completed in that issue; do not treat closure as a passing baseline.
+- #43 S08-02 closed as not planned — canonical Task contract finalization/approval was not completed in that issue; do not treat closure as an approved contract.
+- #44 legacy S08-03 tracker closed as not planned; standalone proposal retained separately.
+- PR #47 is the standalone S08-03 date/time/timezone contract document. It records due_time as informational, canonical IANA account timezone, default Asia/Jakarta, and API field time_zone; it does not implement account-timezone runtime behavior.
 
-1. **TOTP MFA — PR #32:** account-keyed rate limiting now complements the existing per-IP throttle. Five failed TOTP/recovery-code attempts per account are limited per 60 seconds; successful verification clears the account counter. The latest CI run passed, but real authenticator enrollment/recovery and deployed cache-driver behavior remain unverified.
-2. **UUIDv7 — PR #46:** new IDs are generated server-side, caller-supplied IDs are overwritten, existing model IDs are immutable, and migration backfill is tested. Integer primary keys remain internal relations.
-3. **Timezone — PR #35 / #47:** PR #35 is merged and uses the Laravel application date for smart ordering. PR #47 remains a standalone contract proposal, not shipped account-aware timezone behavior. Its acceptance criterion for alternatives and consequences still needs a systematic mapping or explicit maintainer waiver.
-4. **ActivityLog — PR #30 / #48:** atomic Todo mutation writes are merged; rollback coverage now includes create, status, priority, update, archive, restore, completion toggle, and due-date update.
-5. **Task normalization — PR #45:** implementation is straightforward; remove its stale checkpoint copy before review.
-6. **Staging gap:** no staging environment is available. Real SMTP delivery, manual authenticator-app enrollment/recovery, and production cache-driver behavior remain operationally unverified. Do not use production as a substitute.
-7. **Dependency maintenance:** keep the previous dependency-maintenance branch blocked until Composer lockfile compatibility is restored for the declared PHP `^8.3` runtime and CI verifies a clean install.
+No open PRs were returned by the repository's current GitHub open-PR search at checkpoint refresh.
 
-## Verification evidence
+## Sprint 08 status
 
-- PR #32: GitHub Actions run #45360675502 passed on exact head `40a19b451e6e6057cf9b101f863debe91f65385b`; 91 tests / 411 assertions; frontend build passed.
-- PR #35: GitHub Actions run #45359643308 passed on the PR merge tree; 74 tests / 311 assertions; frontend build passed. PR merge commit `696c36e03062d65133cc5eb78f712a71ad617f9a`.
-- PR #46: GitHub Actions run #45361162584 passed on the current main merge tree; 97 tests / 428 assertions; frontend build passed.
-- PR #48: GitHub Actions run #45361479415 passed on exact head `cb7ac75c38b7f44a4709dfada8fb9b9913400453`; 102 tests / 443 assertions; frontend build passed.
-- PR #49's prior run #45359930733 passed against older main `696c36e03062d65133cc5eb78f712a71ad617f9a`; current route reconciliation and checkpoint update require a fresh CI run.
-- No local PHPUnit, browser/device, or staging smoke tests were executed in this remote session.
-- No deployment or production data/configuration operation was performed.
+| Work item | Status / interpretation |
+|---|---|
+| S08-01 #42 | Closed as not planned; baseline evidence incomplete |
+| S08-02 #43 | Closed as not planned; proposal approval not evidenced |
+| S08-03 PR #47 | Contract proposal document integrated; runtime implementation remains separate |
+| S08-04 API & Authentication Contract | Not verified as completed |
+| S08-05 Cross-client Test Scenarios | Not verified as completed |
+| S08-06 ADR & Implementation Plan | Not verified as completed |
 
-## Next actions
+Do not infer Sprint 08 completion from the closure of #42/#43 or the existence of PR #47. Reconcile the Notion Sprint 08 page and Android repository before planning implementation.
 
-1. Finish PR #49 synchronization with current main, run CI on the final tree, then mark ready and merge.
-2. Remove the stale checkpoint file from PR #45's diff, synchronize it with main, and rerun CI.
-3. Resolve PR #47's alternatives/consequences acceptance gap or record an explicit maintainer waiver before merge.
-4. Re-run combined verification after each integration and keep evidence tied to exact SHAs.
+## TYMX roadmap status
 
+| Milestone | Scope | Status |
+|---|---|---|
+| M1/M2 | Board layout and persisted status movement | Integrated |
+| M4/M5 | TYMX v1 contract and export | Integrated via #53 |
+| M6 | Import validation and read-only preview | Integrated via #54 |
+| M7 | Import Apply, transaction/recovery/reporting | Not implemented — design required |
 
-## TYMX M6 — Import validation and preview handoff (2026-11-26)
+Before M7 implementation, decide conflict resolution, apply-time revalidation, transaction boundary, pre-import backup/recovery, ActivityLog semantics, idempotency, and result reporting.
 
-- Parent PR #53 exact head: `1c64d79e744b07269f5c0582c608ea288d48cfff`; CI run #45825237681 passed.
-- M6 branch: `feature/m6-tymx-import-preview`, created from the PR #53 head above.
-- PR #54: https://github.com/imandodo01/Tymetry-web/pull/54 (Draft; implementation commit `300a611e140efb3a12f167da6b1afcac8ac9560b`; refresh CI evidence after each follow-up commit).
-- Scope: read-only TYMX v1 file upload, validation, identity matching, three-way conflict preview, and UI display. No Todo or ActivityLog mutations; no import apply.
-- Resource limits: 5 MB upload; 2,000 records. Only active Todos belonging to the authenticated user are matched. Unknown, archived, and cross-user IDs are all reported as unmatched; do not reveal cross-user identity existence.
-- Conflict rule per field: if proposed equals base, preserve current and report `server_only` when current differs; if current equals base, proposal is eligible; if current equals proposal, it is already current; otherwise report a conflict.
-- Invalid documents are rejected as a whole. Duplicate public IDs are rejected. No internal integer IDs are accepted from the document.
-- Files to be changed: controller, route, preview service, Todo index Blade, Todo JS, feature tests, product plan, this checkpoint.
-- Automated verification must cover valid preview, three-way conflicts, server-only changes, unmatched/cross-user IDs, duplicate IDs, malformed/unsupported schema, unknown fields, file extension, authentication, and no database/activity mutation.
-- Manual browser acceptance and independent review remain pending. M7 import apply is explicitly not implemented.
+## Verification boundaries
 
-- Follow-up hardening commit: UUID format matches the published UUID syntax rather than restricting versions; RFC 3339 timezone offsets are range-checked; server-only and already-current changes are explicitly covered by tests.
+- Current mainline CI for PR #55: run #45956168384 passed on exact synchronized head 030ca39226ccba80a0827484de224708e084c067.
+- PR #54 manual browser acceptance was maintainer-reported PASS for valid preview, invalid rejection, unmatched IDs, conflict detection, and no mutation of Todo/ActivityLog; no screenshots or browser trace were attached.
+- PR #53 manual browser acceptance was maintainer-reported PASS for selected/all-active export and valid JSON; no screenshots or download trace were attached.
+- Multi-process shared-cache/MySQL OTP/TOTP behavior has not been independently verified.
+- Real SMTP provider total-send timeout and deployed cache driver configuration have not been inspected.
+- Real authenticator enrollment/recovery on supported devices has not been recorded.
+- Android local build/test baseline is not evidenced by closed issue #42.
+- No production environment, production data, deployment, or secret was accessed or changed in this documentation reconciliation.
 
-- CI run #45826450026 failed on preview tests due to an undefined optional regex capture for the RFC 3339 `Z` timezone. The failure was isolated from frontend build (passed); the timezone parser is being corrected with `PREG_UNMATCHED_AS_NULL` and named captures. Re-run CI on the follow-up commit.
+## Documentation ownership
 
-- Corrected CI head: `51221fe7c7c317d1ed208e9b683908d4f5878d77`; GitHub Actions run #45826685253 passed on PHP 8.3 / Node 24. PHPUnit: 129 passed, 704 assertions; frontend build passed.
-- The earlier run #45826450026 failed because the regex's optional offset capture was absent for `Z`; the named capture + `PREG_UNMATCHED_AS_NULL` fix is covered by the passing full suite.
-- PR #54 remains Draft and stacked on PR #53. Independent review and browser acceptance are still pending. No merge or deployment.
+- README.md: concise current capability and project entry points.
+- docs/README.md: documentation index and current project status.
+- docs/engineering/session-checkpoint.md: current handoff and next actions.
+- docs/engineering/issue-lifecycle-and-closure.md: issue closure policy and dated issue dispositions.
+- docs/TESTING.md: reusable test plan; checklist items are not evidence of execution.
+- docs/REVIEW-FINDINGS.md: source-review findings and their current disposition.
+- Product/contract documents: product decisions and proposals, not live issue status.
 
+## Next action
 
-## TYMX M6 review refresh — 2026-11-27
-
-### Current PR state
-
-- PR #53 — [Todo v1 export](https://github.com/imandodo01/Tymetry-web/pull/53), Draft/Open; head `1c64d79e744b07269f5c0582c608ea288d48cfff`. Exact-head CI run [#45825237681](https://github.com/imandodo01/Tymetry-web/actions/runs/45825237681) passed: 119 tests, 659 assertions, frontend build passed.
-- PR #54 — [read-only import validation and preview](https://github.com/imandodo01/Tymetry-web/pull/54), Draft/Open; branch `feature/m6-tymx-import-preview`, stacked on PR #53.
-- PR #54 review fix: normalize UUID public IDs for database lookup with `LOWER(public_id)`, matching the case-insensitive UUID syntax already accepted by validation. Added a regression test that imports an uppercase representation of an existing Todo's public ID.
-- Fix commit: `cf9769bbb5d3163ac87cd6f557b339e605f48ca1` (`fix(tymx): match public IDs case-insensitively`).
-- CI run [#45940468456](https://github.com/imandodo01/Tymetry-web/actions/runs/45940468456) passed on exact fix SHA: 130 tests, 709 assertions; frontend build passed.
-- PR descriptions were refreshed with current exact-head verification evidence.
-
-### Reconciliation and acceptance
-
-- Current `main` at checkpoint refresh: `243c4f8f2796a7805973837aa86e5553d85530de` (README alignment commit, parent `2198a5299e9e60025aab631a23cb1ed4e5a11789)).
-- PR #53's recorded base snapshot is `92e762fa93a13816a5170fc712c0fabaa5fe8ce4`; `main` has advanced by five commits since that snapshot. GitHub currently reports PR #53 mergeable, but current-main integration and merge-tree CI must be checked before merge.
-- PR #54 remains stacked on PR #53's export branch. Preserve the dependency order: integrate/reconcile #53 first, then retarget/reconcile #54 against the resulting mainline.
-- Board PR #52 has since been squash-merged into `main` as `2e2f65a845495a37ccfcb3a53cc6368ef79797bb`; its CI passed on the tested application-code head.
-- The Todo due-indicator change is also on main; verified application-code SHA `245ad2bbbfb5476d2cbe261d7d66211ea8cfc4cd`, CI run #45935445923 passed (120 tests, 505 assertions, frontend build).
-- No local PHPUnit/build or manual browser/device acceptance has been performed in this remote session. TYMX export download/round-trip and import preview UI acceptance remain pending.
-- No merge, deployment, production data change, or branch deletion was performed.
-
-### Next actions
-
-1. Finish independent review of PR #53/#54 and reconcile the PR #53 branch against current main before integration.
-2. Re-run CI on the exact merge tree after reconciliation.
-3. Perform browser acceptance for selected/all-active export, UTF-8 round-trip, valid/invalid import preview, unmatched IDs, conflict display, and no-mutation behavior when laptop access is available.
-4. Keep M7 import apply unimplemented until its conflict-resolution, apply-time revalidation, transactional boundary, pre-import backup/recovery, audit, and result-reporting contracts are designed and reviewed.
-5. Use commute time for M7 design decisions and test-matrix preparation; do not require repository edits or laptop verification for that design-only session.
-
-
-## TYMX current-head verification — 2026-11-27
-
-- PR #53 [Todo v1 export](https://github.com/imandodo01/Tymetry-web/pull/53): current head `b5fd1569da863748ced1f4feb37a9da1354fc6ba`; synchronized with `main` at `243c4f8f2796a7805973837aa86e5553d85530de`; CI run [#45940988334](https://github.com/imandodo01/Tymetry-web/actions/runs/45940988334) passed (129 tests, 684 assertions, frontend build).
-- PR #54 [read-only import preview](https://github.com/imandodo01/Tymetry-web/pull/54): current head `ee2f317ffda9c879de56b518d6ea0c4179e79ad4`; synchronized with PR #53 head above; compare reports 8 commits ahead and 0 behind; CI run [#45941035271](https://github.com/imandodo01/Tymetry-web/actions/runs/45941035271) passed (140 tests, 742 assertions, frontend build).
-- Both PRs remain Draft/Open and mergeable. No merge to `main`, deployment, or production data change has occurred.
-- Independent source review found and fixed UUID case normalization in M6 preview lookup; regression test included.
-- Manual browser acceptance remains the outstanding gate: selected/all-active export, UTF-8 download/round-trip, valid and invalid preview, unmatched/cross-user IDs, conflict display, and no-mutation behavior.
+Documentation and issue-body reconciliation are committed on the PR #56 branch; CI run #45960158848 passed on exact head 4575272f72e59dc46cb5a23b6463030dceabbfed. Next: maintainer reviews and merges PR #56. After merge, reconcile the Notion Sprint 08 page against the GitHub source of truth. Keep #36, #39, #40, and #41 open until their recorded criteria are satisfied.

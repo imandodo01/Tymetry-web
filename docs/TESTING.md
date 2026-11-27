@@ -36,6 +36,10 @@ Record the date, commit SHA, PHP/database/Node environment, command, result, and
 
 The repository's focused feature/unit tests currently cover:
 
+- Board data grouping, filtering, ownership, status persistence, completion metadata, and activity logging.
+- TYMX v1 export contract/schema assertions, import document validation, public-ID matching, three-way preview classification, and the no-mutation guarantee.
+- TOTP enrollment/login/recovery behavior, account-keyed attempt limiting, and deterministic lock-contention rejection. The direct TOTP replay regression and real multi-process MySQL/shared-cache checks remain outstanding in Issue #41.
+
 - Authentication verification and two-factor flow behavior.
 - Password-reset rate limits.
 - Todo request and AJAX enum validation.
@@ -103,3 +107,30 @@ The repository's focused feature/unit tests currently cover:
 ## Safe test-data handling
 
 Use a disposable local/test database for tests that reset or mutate records. Confirm the active connection before running migrations or test commands. Do not use production credentials or production data for local verification.
+
+
+## Board manual acceptance — follow-up checklist
+
+- [ ] List and Board show the same underlying Todo records.
+- [ ] Dragging a card persists status; failed requests restore the server state.
+- [ ] Keyboard/touch users can change status without drag-and-drop.
+- [ ] Filters and due indicators remain consistent across views.
+- [ ] Desktop, tablet, and mobile layouts remain usable.
+
+## TYMX manual acceptance — follow-up checklist
+
+- [ ] Export selected Todo records and verify the downloaded UTF-8 JSON against the v1 schema.
+- [ ] Export all active Todos and verify no archived or cross-user records are included.
+- [ ] Preview a valid .tymx file and inspect identity/conflict classifications.
+- [ ] Reject malformed, unsupported, oversized, and invalid documents without mutation.
+- [ ] Confirm preview does not change Todo rows or create ActivityLog records.
+- [ ] Do not test import execution: M7 Import Apply is not implemented.
+
+## MFA and OTP operational verification — safe environment only
+
+- [ ] Verify email OTP delivery and expiry using the configured non-production mail transport.
+- [ ] Exercise concurrent send/verify requests using multiple processes and the intended shared cache/database.
+- [ ] Verify TOTP first-use success and same-code replay rejection after the replay regression is added.
+- [ ] Verify authenticator enrollment, recovery-code one-time use, and legacy email-MFA compatibility.
+- [ ] Record cache driver, database engine/version, mail provider, effective timeout, exact tested SHA, and results.
+- [ ] Never use production users, secrets, live OTPs, or production data as test fixtures.

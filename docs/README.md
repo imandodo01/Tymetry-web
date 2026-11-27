@@ -4,6 +4,9 @@ Tymetry is a Laravel-based task manager for creating and organizing todos, track
 
 ## Current project checkpoint
 
+**Updated 2026-11-27:** Board M1/M2, TYMX v1 Export, TYMX read-only Import Preview, and TOTP account rate-limit atomicity are merged into main (PRs #51–#55, with #50 planning). Sprint 08 cross-client contract work is not yet an approved implementation baseline. Operational QA items remain tracked in GitHub Issues #36, #39, #40, and #41. See [engineering checkpoint](engineering/session-checkpoint.md) and [issue lifecycle/closure policy](engineering/issue-lifecycle-and-closure.md) for the current handoff and closure rules.
+
+
 **Sprint 06 — Core Stabilization: Complete.** Data-integrity fixes, authentication hardening, and the scoped UX consistency changes have been merged into `main`. M9 documentation closure was merged in PR #28.
 
 Baseline before the Sprint 07 maintenance PR: `edc29cbfc4ab2ad0a752969b4d08598ea92fd72b` (2026-11-17).
@@ -21,10 +24,14 @@ Do not treat source presence or a passing CI run as proof of every possible work
 
 ## Features in the current code
 
+The 2026-11-27 integrated baseline also includes the Todo Board (PRs #51–#52), TYMX v1 export (PR #53), read-only TYMX import preview (PR #54), and atomic TOTP account rate limiting (PR #55). Import Apply (M7) and account-timezone runtime behavior are not implemented by these changes.
+
 - Login/logout, email verification, optional two-factor authentication, and password reset.
 - Profile details, password, and two-factor preference updates.
 - Todo creation, editing, status and priority changes, due-date and due-time fields.
 - Todo filtering, smart ordering, dashboard summaries, and activity history.
+- Board view with persisted status changes and accessible status controls.
+- TYMX v1 Todo export and validated read-only import preview.
 - Bulk mark-done, archive, and restore operations.
 - Accessible application navigation, form labels, validation feedback, and task-table controls.
 
@@ -63,3 +70,5 @@ php artisan serve
 - [Architecture overview](ARCHITECTURE.md) — request flow, code responsibilities, and data relationships.
 - [Testing guide](TESTING.md) — automated checks, manual smoke checks, and verification boundaries.
 - [Review findings](REVIEW-FINDINGS.md) — disposition of findings from the 2026-10-20 source review.
+- [Issue lifecycle and closure policy](engineering/issue-lifecycle-and-closure.md) — evidence-based GitHub issue closure rules and current dispositions.
+- [Engineering session checkpoint](engineering/session-checkpoint.md) — current verified handoff.
