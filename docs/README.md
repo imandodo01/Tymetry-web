@@ -4,6 +4,9 @@ Tymetry is a Laravel-based task manager for creating and organizing todos, track
 
 ## Current project checkpoint
 
+**Updated 2026-11-27:** Board M1/M2, TYMX v1 Export, TYMX read-only Import Preview, and TOTP account rate-limit atomicity are merged into main (PRs #51–#55, with #50 planning). Sprint 08 cross-client contract work is not yet an approved implementation baseline. Operational QA items remain tracked in GitHub Issues #36, #39, #40, and #41. See [engineering checkpoint](engineering/session-checkpoint.md) and [issue lifecycle/closure policy](engineering/issue-lifecycle-and-closure.md) for the current handoff and closure rules.
+
+
 **Sprint 06 — Core Stabilization: Complete.** Data-integrity fixes, authentication hardening, and the scoped UX consistency changes have been merged into `main`. M9 documentation closure was merged in PR #28.
 
 Baseline before the Sprint 07 maintenance PR: `edc29cbfc4ab2ad0a752969b4d08598ea92fd72b` (2026-11-17).
@@ -63,3 +66,5 @@ php artisan serve
 - [Architecture overview](ARCHITECTURE.md) — request flow, code responsibilities, and data relationships.
 - [Testing guide](TESTING.md) — automated checks, manual smoke checks, and verification boundaries.
 - [Review findings](REVIEW-FINDINGS.md) — disposition of findings from the 2026-10-20 source review.
+- [Issue lifecycle and closure policy](engineering/issue-lifecycle-and-closure.md) — evidence-based GitHub issue closure rules and current dispositions.
+- [Engineering session checkpoint](engineering/session-checkpoint.md) — current verified handoff.
