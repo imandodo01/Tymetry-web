@@ -315,9 +315,13 @@ function renderTodoBoard(todos) {
     });
 
     todos.forEach(function (todo) {
+        const completedDueStatuses = ['completed', 'completed_on_time', 'completed_late'];
+        const dueTextLabel = todo.due_status === 'overdue' || completedDueStatuses.includes(todo.due_status)
+            ? todo.due_status_label
+            : todo.due_label;
         const dueText = todo.due_date
             ? '<div class="todo-board-due"><span class="badge ' + escapeTodoHtml(todo.due_badge) + '">' +
-                escapeTodoHtml(todo.due_status === 'overdue' ? 'Overdue' : todo.due_label) +
+                escapeTodoHtml(dueTextLabel) +
                 '</span></div>'
             : '<div class="todo-board-due text-muted">No due date</div>';
         const card = $('<article class="todo-board-card" draggable="true"></article>');

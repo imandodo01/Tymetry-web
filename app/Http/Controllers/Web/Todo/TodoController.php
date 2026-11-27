@@ -82,7 +82,7 @@ class TodoController extends Controller
                 })->addColumn('due_status', function ($row) {
                     return '<div class="d-flex flex-column">
                         <span class="badge ' . $row->dueBadge() . '">
-                            ' . ucfirst($row->dueStatus()) . '
+                            ' . $row->dueStatusLabel() . '
                         </span>
                         <small class="text-muted mt-1">
                             ' . $row->dueLabel() . '
@@ -130,6 +130,7 @@ class TodoController extends Controller
                 : null,
             'due_label' => $todo->dueLabel(),
             'due_status' => $todo->dueStatus(),
+            'due_status_label' => $todo->dueStatusLabel(),
             'due_badge' => $todo->dueBadge(),
             'edit_url' => route('todo.edit', $todo->id),
         ]);

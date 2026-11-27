@@ -85,3 +85,11 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 2. Remove the stale checkpoint file from PR #45's diff, synchronize it with main, and rerun CI.
 3. Resolve PR #47's alternatives/consequences acceptance gap or record an explicit maintainer waiver before merge.
 4. Re-run combined verification after each integration and keep evidence tied to exact SHAs.
+
+
+## 2026-11-27 — Todo due indicator semantics
+
+- User approved a direct-to-main change without a PR or manual acceptance check for the due indicator bug.
+- Rule: only non-Done Todos can be `overdue`; Done Todos with a due date are classified from `completed_at` as `completed_on_time` or `completed_late`. Legacy Done rows without `completed_at` use neutral `completed` rather than guessing.
+- The due date is date-only, so completion on the due date counts as on time. No schema or migration change.
+- Keep List and Board labels/badges sourced from Todo model methods. Automated tests and CI are still required; no manual browser acceptance requested.

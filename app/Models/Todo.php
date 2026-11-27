@@ -67,8 +67,17 @@ class Todo extends Model
     {
         if (!$this->due_date) return 'none';
 
+        $due = Carbon::parse($this->due_date)->startOfDay();
+
+        if ($this->status === TodoStatus::Done) {
+            if (!$this->completed_at) return 'completed';
+
+            $completed = Carbon::parse($this->completed_at)->startOfDay();
+
+            return $completed->gt($due) ? 'completed_late' : 'completed_on_time';
+        }
+
         $today = now()->startOfDay();
-        $due = \Carbon\Carbon::parse($this->due_date)->startOfDay();
 
         if ($due->lt($today)) return 'overdue';
         if ($due->isSameDay($today)) return 'today';
@@ -77,12 +86,29 @@ class Todo extends Model
         return 'upcoming';
     }
 
+    public function dueStatusLabel(): string
+    {
+        return match ($this->dueStatus()) {
+            'none' => 'No due date',
+            'overdue' => 'Overdue',
+            'today' => 'Due today',
+            'tomorrow' => 'Due tomorrow',
+            'completed' => 'Completed',
+            'completed_on_time' => 'Completed on time',
+            'completed_late' => 'Completed late',
+            default => 'Upcoming',
+        };
+    }
+
     public function dueBadge(): string
     {
         return match ($this->dueStatus()) {
             'overdue' => 'bg-danger',
             'today' => 'bg-dark',
             'tomorrow' => 'bg-secondary',
+            'completed' => 'bg-secondary',
+            'completed_on_time' => 'bg-success',
+            'completed_late' => 'bg-warning text-dark',
             default => 'bg-light text-dark',
         };
     }
@@ -91,7 +117,7 @@ class Todo extends Model
     {
         if (!$this->due_date) return 'No due date';
 
-        return \Carbon\Carbon::parse($this->due_date)->diffForHumans();
+        return Carbon::parse($this->due_date)->diffForHumans();
     }
 
     public function scopeSmartOrder($query)
