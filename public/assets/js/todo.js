@@ -485,3 +485,136 @@ $(document).on('drop', '.todo-board-column', function (event) {
 
     updateBoardTodoStatus(todoId, $(this).data('status'), card);
 });
+
+function formatTymxValue(value) {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    return String(value);
+}
+
+function renderTymxImportPreview(response) {
+    const summary = response.summary || {};
+    const summaryLabels = [
+        ['Total', summary.total || 0],
+        ['Proposed updates', summary.updates || 0],
+        ['Unchanged', summary.unchanged || 0],
+        ['Conflicts', summary.conflicts || 0],
+        ['Unmatched', summary.unmatched || 0]
+    ];
+
+    const summaryContainer = $('#tymxImportSummary').empty();
+    summaryLabels.forEach(function ([label, count]) {
+        $('<span class="badge text-bg-light border"></span>')
+            .text(label + ': ' + count)
+            .appendTo(summaryContainer);
+    });
+
+    const rows = $('#tymxImportRows').empty();
+    (response.records || []).forEach(function (record) {
+        const row = $('<tr></tr>');
+        $('<td></td>')
+            .append($('<div class="fw-semibold"></div>').text(record.title || 'Unmatched Todo'))
+            .append($('<small class="text-muted"></small>').text(record.public_id))
+            .appendTo(row);
+
+        const actionLabels = {
+            update: 'Proposed update',
+            unchanged: 'No proposed change',
+            conflict: 'Conflict',
+            unmatched: 'Unmatched — skipped'
+        };
+        $('<td></td>')
+            .append($('<span class="badge text-bg-light border"></span>').text(actionLabels[record.action] || record.action))
+            .appendTo(row);
+
+        const comparison = $('<td></td>');
+        (record.changes || []).forEach(function (change) {
+            const item = $('<div class="small mb-1"></div>');
+            item.append($('<span class="fw-semibold"></span>').text(change.field + ': '));
+            const fromValue = change.resolution === 'server_only'
+                ? change.base
+                : change.current;
+            const toValue = change.resolution === 'server_only'
+                ? change.current
+                : change.proposed;
+            item.append(document.createTextNode(
+                formatTymxValue(fromValue) + ' → ' + formatTymxValue(toValue)
+            ));
+            const resolutionLabels = {
+                conflict: 'Conflict',
+                proposed: 'Eligible to update',
+                server_only: 'Server changed — preserve',
+                already_current: 'Already current'
+            };
+            const resolutionClasses = {
+                conflict: 'text-bg-warning',
+                proposed: 'text-bg-success',
+                server_only: 'text-bg-light border',
+                already_current: 'text-bg-light border'
+            };
+            if (resolutionLabels[change.resolution]) {
+                item.append($('<span class="badge ms-2"></span>')
+                    .addClass(resolutionClasses[change.resolution])
+                    .text(resolutionLabels[change.resolution]));
+            }
+            comparison.append(item);
+        });
+        if (record.action === 'unmatched') {
+            comparison.text('No active Todo in your account matches this public ID.');
+        } else if (!record.changes || record.changes.length === 0) {
+            comparison.text('No proposed field changes.');
+        }
+        comparison.appendTo(row);
+        rows.append(row);
+    });
+
+    if ((response.records || []).length === 0) {
+        rows.append($('<tr><td colspan="3" class="text-center text-muted py-4">No Todos in this file.</td></tr>'));
+    }
+
+    $('#tymxImportPreview').removeClass('d-none');
+}
+
+$('#tymxImportForm').on('submit', function (event) {
+    event.preventDefault();
+
+    const form = this;
+    const fileInput = $('#tymxImportFile')[0];
+    const errorContainer = $('#tymxImportError');
+    const previewContainer = $('#tymxImportPreview');
+    const button = $('#tymxPreviewButton');
+
+    errorContainer.addClass('d-none').text('');
+    previewContainer.addClass('d-none');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        errorContainer.text('Choose a .tymx file first.').removeClass('d-none');
+        return;
+    }
+
+    const formData = new FormData(form);
+    button.prop('disabled', true).text('Validating...');
+
+    $.ajax({
+        url: $(form).data('preview-url'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    }).done(function (response) {
+        renderTymxImportPreview(response);
+    }).fail(function (xhr) {
+        const message = xhr.responseJSON?.errors?.file?.[0]
+            || xhr.responseJSON?.message
+            || 'The TYMX file could not be validated.';
+        errorContainer.text(message).removeClass('d-none');
+    }).always(function () {
+        button.prop('disabled', false).text('Validate & preview');
+    });
+});
