@@ -67,7 +67,7 @@ Closed historical work:
 - #37 TYM-PILOT-01 completed — Tier 1 CI evidence review; separate Review/QA not required.
 - #38 TYM-PILOT-02 completed — exact-SHA timezone smart-order regression/CI evidence reviewed.
 - #42 S08-01 closed as not planned — local Web/Android baseline evidence was not completed in that issue; do not treat closure as a passing baseline.
-- #43 S08-02 closed as not planned — canonical Task contract finalization/approval was not completed in that issue; do not treat closure as an approved contract.
+- #43 S08-02 closed as not planned as a tracker. Maintainer-approved Task-domain and Project/Tag decisions are recorded in the Sprint 08 Notion page and remain valid inputs. Closure does not mean every wire-level detail, implementation prerequisite, or cross-client conformance plan is complete.
 - #44 legacy S08-03 tracker closed as not planned; standalone proposal retained separately.
 - PR #47 is the standalone S08-03 date/time/timezone contract document. It records due_time as informational, canonical IANA account timezone, default Asia/Jakarta, and API field time_zone; it does not implement account-timezone runtime behavior.
 
