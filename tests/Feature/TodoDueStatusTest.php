@@ -7,6 +7,7 @@ use App\Models\Todo;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TodoDueStatusTest extends TestCase
@@ -85,7 +86,8 @@ class TodoDueStatusTest extends TestCase
             'completed_at' => null,
         ]);
 
-        $todo->forceFill(['completed_at' => null])->save();
+        DB::table('todos')->where('id', $todo->id)->update(['completed_at' => null]);
+        $todo->refresh();
 
         $this->assertSame('completed', $todo->dueStatus());
         $this->assertSame('Completed', $todo->dueStatusLabel());
@@ -118,4 +120,22 @@ class TodoDueStatusTest extends TestCase
         $this->assertSame('today', $today->dueStatus());
         $this->assertSame('tomorrow', $tomorrow->dueStatus());
     }
+    public function test_board_data_exposes_the_completed_late_indicator(): void
+    {
+        $user = User::factory()->create();
+
+        Todo::factory()->for($user)->create([
+            'status' => TodoStatus::Done,
+            'due_date' => '2026-11-25',
+            'completed_at' => '2026-11-26 08:00:00',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('todo.board-data'))
+            ->assertOk()
+            ->assertJsonPath('data.0.due_status', 'completed_late')
+            ->assertJsonPath('data.0.due_status_label', 'Completed late')
+            ->assertJsonPath('data.0.due_badge', 'bg-warning text-dark');
+    }
+
 }

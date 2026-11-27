@@ -93,3 +93,5 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 - Rule: only non-Done Todos can be `overdue`; Done Todos with a due date are classified from `completed_at` as `completed_on_time` or `completed_late`. Legacy Done rows without `completed_at` use neutral `completed` rather than guessing.
 - The due date is date-only, so completion on the due date counts as on time. No schema or migration change.
 - Keep List and Board labels/badges sourced from Todo model methods. Automated tests and CI are still required; no manual browser acceptance requested.
+
+- Follow-up test hardening: simulate a legacy missing `completed_at` with a direct query-builder update (bypassing the model's saving hook), and verify the Board JSON exposes the completed-late label and badge.
