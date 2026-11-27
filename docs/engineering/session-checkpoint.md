@@ -87,15 +87,62 @@ PR #32, #34, #35, #46, and #48 are merged. PR #30, #31, and #33 are also merged.
 4. Re-run combined verification after each integration and keep evidence tied to exact SHAs.
 
 
-## 2026-11-27 — Todo due indicator semantics
+## TYMX M6 — Import validation and preview handoff (2026-11-26)
 
-- User approved a direct-to-main change without a PR or manual acceptance check for the due indicator bug.
-- Rule: only non-Done Todos can be `overdue`; Done Todos with a due date are classified from `completed_at` as `completed_on_time` or `completed_late`. Legacy Done rows without `completed_at` use neutral `completed` rather than guessing.
-- The due date is date-only, so completion on the due date counts as on time. No schema or migration change.
-- Keep List and Board labels/badges sourced from Todo model methods. Automated tests and CI are still required; no manual browser acceptance requested.
+- Parent PR #53 exact head: `1c64d79e744b07269f5c0582c608ea288d48cfff`; CI run #45825237681 passed.
+- M6 branch: `feature/m6-tymx-import-preview`, created from the PR #53 head above.
+- PR #54: https://github.com/imandodo01/Tymetry-web/pull/54 (Draft; implementation commit `300a611e140efb3a12f167da6b1afcac8ac9560b`; refresh CI evidence after each follow-up commit).
+- Scope: read-only TYMX v1 file upload, validation, identity matching, three-way conflict preview, and UI display. No Todo or ActivityLog mutations; no import apply.
+- Resource limits: 5 MB upload; 2,000 records. Only active Todos belonging to the authenticated user are matched. Unknown, archived, and cross-user IDs are all reported as unmatched; do not reveal cross-user identity existence.
+- Conflict rule per field: if proposed equals base, preserve current and report `server_only` when current differs; if current equals base, proposal is eligible; if current equals proposal, it is already current; otherwise report a conflict.
+- Invalid documents are rejected as a whole. Duplicate public IDs are rejected. No internal integer IDs are accepted from the document.
+- Files to be changed: controller, route, preview service, Todo index Blade, Todo JS, feature tests, product plan, this checkpoint.
+- Automated verification must cover valid preview, three-way conflicts, server-only changes, unmatched/cross-user IDs, duplicate IDs, malformed/unsupported schema, unknown fields, file extension, authentication, and no database/activity mutation.
+- Manual browser acceptance and independent review remain pending. M7 import apply is explicitly not implemented.
 
-- Follow-up test hardening: simulate a legacy missing `completed_at` with a direct query-builder update (bypassing the model's saving hook), and verify the Board JSON exposes the completed-late label and badge.
+- Follow-up hardening commit: UUID format matches the published UUID syntax rather than restricting versions; RFC 3339 timezone offsets are range-checked; server-only and already-current changes are explicitly covered by tests.
 
-- Verification for application code commit `245ad2bbbfb5476d2cbe261d7d66211ea8cfc4cd`: GitHub Actions run [#45935445923](https://github.com/imandodo01/Tymetry-web/actions/runs/45935445923) passed; 120 tests, 505 assertions, frontend build passed.
-- Earlier code commit `260943ccc8a1af5b02ca2238cf7e62c3eecc3d5f` had one failing legacy-row test because the model saving hook repopulated `completed_at`; the test now simulates legacy data through the query builder and passes on the verified commit above.
-- No local PHPUnit or manual browser acceptance was run. No migration, merge, or deployment was needed for this direct-to-main change.
+- CI run #45826450026 failed on preview tests due to an undefined optional regex capture for the RFC 3339 `Z` timezone. The failure was isolated from frontend build (passed); the timezone parser is being corrected with `PREG_UNMATCHED_AS_NULL` and named captures. Re-run CI on the follow-up commit.
+
+- Corrected CI head: `51221fe7c7c317d1ed208e9b683908d4f5878d77`; GitHub Actions run #45826685253 passed on PHP 8.3 / Node 24. PHPUnit: 129 passed, 704 assertions; frontend build passed.
+- The earlier run #45826450026 failed because the regex's optional offset capture was absent for `Z`; the named capture + `PREG_UNMATCHED_AS_NULL` fix is covered by the passing full suite.
+- PR #54 remains Draft and stacked on PR #53. Independent review and browser acceptance are still pending. No merge or deployment.
+
+
+## TYMX M6 review refresh — 2026-11-27
+
+### Current PR state
+
+- PR #53 — [Todo v1 export](https://github.com/imandodo01/Tymetry-web/pull/53), Draft/Open; head `1c64d79e744b07269f5c0582c608ea288d48cfff`. Exact-head CI run [#45825237681](https://github.com/imandodo01/Tymetry-web/actions/runs/45825237681) passed: 119 tests, 659 assertions, frontend build passed.
+- PR #54 — [read-only import validation and preview](https://github.com/imandodo01/Tymetry-web/pull/54), Draft/Open; branch `feature/m6-tymx-import-preview`, stacked on PR #53.
+- PR #54 review fix: normalize UUID public IDs for database lookup with `LOWER(public_id)`, matching the case-insensitive UUID syntax already accepted by validation. Added a regression test that imports an uppercase representation of an existing Todo's public ID.
+- Fix commit: `cf9769bbb5d3163ac87cd6f557b339e605f48ca1` (`fix(tymx): match public IDs case-insensitively`).
+- CI run [#45940468456](https://github.com/imandodo01/Tymetry-web/actions/runs/45940468456) passed on exact fix SHA: 130 tests, 709 assertions; frontend build passed.
+- PR descriptions were refreshed with current exact-head verification evidence.
+
+### Reconciliation and acceptance
+
+- Current `main` at checkpoint refresh: `243c4f8f2796a7805973837aa86e5553d85530de` (README alignment commit, parent `2198a5299e9e60025aab631a23cb1ed4e5a11789)).
+- PR #53's recorded base snapshot is `92e762fa93a13816a5170fc712c0fabaa5fe8ce4`; `main` has advanced by five commits since that snapshot. GitHub currently reports PR #53 mergeable, but current-main integration and merge-tree CI must be checked before merge.
+- PR #54 remains stacked on PR #53's export branch. Preserve the dependency order: integrate/reconcile #53 first, then retarget/reconcile #54 against the resulting mainline.
+- Board PR #52 has since been squash-merged into `main` as `2e2f65a845495a37ccfcb3a53cc6368ef79797bb`; its CI passed on the tested application-code head.
+- The Todo due-indicator change is also on main; verified application-code SHA `245ad2bbbfb5476d2cbe261d7d66211ea8cfc4cd`, CI run #45935445923 passed (120 tests, 505 assertions, frontend build).
+- No local PHPUnit/build or manual browser/device acceptance has been performed in this remote session. TYMX export download/round-trip and import preview UI acceptance remain pending.
+- No merge, deployment, production data change, or branch deletion was performed.
+
+### Next actions
+
+1. Finish independent review of PR #53/#54 and reconcile the PR #53 branch against current main before integration.
+2. Re-run CI on the exact merge tree after reconciliation.
+3. Perform browser acceptance for selected/all-active export, UTF-8 round-trip, valid/invalid import preview, unmatched IDs, conflict display, and no-mutation behavior when laptop access is available.
+4. Keep M7 import apply unimplemented until its conflict-resolution, apply-time revalidation, transactional boundary, pre-import backup/recovery, audit, and result-reporting contracts are designed and reviewed.
+5. Use commute time for M7 design decisions and test-matrix preparation; do not require repository edits or laptop verification for that design-only session.
+
+
+## TYMX current-head verification — 2026-11-27
+
+- PR #53 [Todo v1 export](https://github.com/imandodo01/Tymetry-web/pull/53): current head `b5fd1569da863748ced1f4feb37a9da1354fc6ba`; synchronized with `main` at `243c4f8f2796a7805973837aa86e5553d85530de`; CI run [#45940988334](https://github.com/imandodo01/Tymetry-web/actions/runs/45940988334) passed (129 tests, 684 assertions, frontend build).
+- PR #54 [read-only import preview](https://github.com/imandodo01/Tymetry-web/pull/54): current head `ee2f317ffda9c879de56b518d6ea0c4179e79ad4`; synchronized with PR #53 head above; compare reports 8 commits ahead and 0 behind; CI run [#45941035271](https://github.com/imandodo01/Tymetry-web/actions/runs/45941035271) passed (140 tests, 742 assertions, frontend build).
+- Both PRs remain Draft/Open and mergeable. No merge to `main`, deployment, or production data change has occurred.
+- Independent source review found and fixed UUID case normalization in M6 preview lookup; regression test included.
+- Manual browser acceptance remains the outstanding gate: selected/all-active export, UTF-8 download/round-trip, valid and invalid preview, unmatched/cross-user IDs, conflict display, and no-mutation behavior.

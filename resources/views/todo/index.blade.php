@@ -23,6 +23,10 @@
                     <button type="button" class="btn btn-dark" id="showTodoList" aria-pressed="true">List</button>
                     <button type="button" class="btn btn-outline-dark" id="showTodoBoard" aria-pressed="false">Board</button>
                 </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#tymxImportModal">
+                    <i class="bi bi-upload me-1" aria-hidden="true"></i>
+                    Import .tymx
+                </button>
                 <a href="{{ route('todo.create') }}" class="btn btn-dark btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>
                 Add Todo
@@ -168,6 +172,55 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="tymxImportModal" tabindex="-1" aria-labelledby="tymxImportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tymxImportModalLabel">Preview TYMX import</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    Upload a TYMX v1 file to review proposed changes. This step does not modify your Todos.
+                    Unmatched tasks are skipped; conflicts require a separate resolution workflow.
+                </p>
+                <form id="tymxImportForm" data-preview-url="{{ route('todo.import.preview') }}">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-9">
+                            <label for="tymxImportFile" class="form-label">TYMX file (maximum 5 MB)</label>
+                            <input type="file" class="form-control" id="tymxImportFile" name="file" accept=".tymx,application/json" required>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-dark w-100" id="tymxPreviewButton">Validate &amp; preview</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="tymxImportError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                <section id="tymxImportPreview" class="mt-4 d-none" aria-live="polite">
+                    <div id="tymxImportSummary" class="d-flex flex-wrap gap-2 mb-3"></div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Todo</th>
+                                    <th scope="col">Preview result</th>
+                                    <th scope="col">Field comparison</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tymxImportRows"></tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        Preview only. No Todo or activity history has been changed. Import execution is not available yet.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
