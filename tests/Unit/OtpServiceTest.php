@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\Auth\OtpVerificationResult;
 use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Support\Facades\Cache;
@@ -34,8 +35,8 @@ class OtpServiceTest extends TestCase
         $service->send($user, 'email_verification');
 
         $this->assertNotNull($this->sentCode);
-        $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
-        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
+        $this->assertSame(OtpVerificationResult::Verified, $service->verify($user, 'email_verification', $this->sentCode));
+        $this->assertSame(OtpVerificationResult::Invalid, $service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_email_verification_message_uses_the_account_address_and_expected_subject(): void
@@ -67,11 +68,11 @@ class OtpServiceTest extends TestCase
         $service->send($user, 'email_verification');
 
         for ($attempt = 0; $attempt < config('authentication.otp_max_attempts', 5); $attempt++) {
-            $this->assertFalse($service->verify($user, 'email_verification', '000000'));
+            $this->assertSame(OtpVerificationResult::Invalid, $service->verify($user, 'email_verification', '000000'));
         }
 
         $this->assertNotNull($this->sentCode);
-        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
+        $this->assertSame(OtpVerificationResult::Invalid, $service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_resend_is_rejected_during_the_cooldown_window(): void
@@ -105,7 +106,7 @@ class OtpServiceTest extends TestCase
         $this->travel(config('authentication.otp_expiry_minutes', 5) + 1)->minutes();
 
         $this->assertNotNull($this->sentCode);
-        $this->assertFalse($service->verify($user, 'email_verification', $this->sentCode));
+        $this->assertSame(OtpVerificationResult::Invalid, $service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_failed_email_delivery_removes_the_prepared_challenge(): void
@@ -148,6 +149,33 @@ class OtpServiceTest extends TestCase
         $this->assertTrue($thrown, 'A concurrent send must not enter the protected challenge operation.');
     }
 
+    public function test_verify_reports_lock_contention_without_consuming_the_challenge(): void
+    {
+        $user = $this->makeUser();
+        $this->expectOtpEmail();
+
+        $service = app(OtpService::class);
+        $service->send($user, 'email_verification');
+
+        $this->assertNotNull($this->sentCode);
+        $lock = Cache::lock($this->lockKey($user, 'email_verification'), 120);
+        $this->assertTrue($lock->get());
+
+        try {
+            $this->assertSame(
+                OtpVerificationResult::Busy,
+                $service->verify($user, 'email_verification', $this->sentCode)
+            );
+        } finally {
+            $lock->release();
+        }
+
+        $this->assertSame(
+            OtpVerificationResult::Verified,
+            $service->verify($user, 'email_verification', $this->sentCode)
+        );
+    }
+
     public function test_database_cache_store_supports_the_otp_lock_workflow(): void
     {
         config(['cache.default' => 'database']);
@@ -160,7 +188,7 @@ class OtpServiceTest extends TestCase
         $service->send($user, 'email_verification');
 
         $this->assertNotNull($this->sentCode);
-        $this->assertTrue($service->verify($user, 'email_verification', $this->sentCode));
+        $this->assertSame(OtpVerificationResult::Verified, $service->verify($user, 'email_verification', $this->sentCode));
     }
 
     public function test_smtp_mailer_uses_a_finite_socket_timeout(): void

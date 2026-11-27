@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Auth\OtpVerificationResult;
 use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,7 +44,7 @@ class AuthenticationVerificationTest extends TestCase
         ]);
 
         $otp = Mockery::mock(OtpService::class);
-        $otp->shouldReceive('verify')->once()->with(Mockery::type(User::class), 'email_verification', '123456')->andReturnTrue();
+        $otp->shouldReceive('verify')->once()->with(Mockery::type(User::class), 'email_verification', '123456')->andReturn(OtpVerificationResult::Verified);
         $this->app->instance(OtpService::class, $otp);
 
         $this->withSession([
@@ -55,6 +56,36 @@ class AuthenticationVerificationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_otp_verification_lock_contention_is_reported_as_temporary_busy(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+            'two_factor_enabled' => false,
+        ]);
+
+        $otp = Mockery::mock(OtpService::class);
+        $otp->shouldReceive('verify')
+            ->once()
+            ->with(Mockery::type(User::class), 'email_verification', '123456')
+            ->andReturn(OtpVerificationResult::Busy);
+        $this->app->instance(OtpService::class, $otp);
+
+        $this->from(route('otp.index'))
+            ->withSession([
+                'pending_auth_user_id' => $user->id,
+                'pending_auth_purpose' => 'email_verification',
+                'pending_auth_remember' => false,
+            ])
+            ->post(route('otp.verify'), ['code' => '123456'])
+            ->assertRedirect(route('otp.index'))
+            ->assertSessionHasErrors([
+                'code' => 'A verification request is already being processed. Please wait a moment and try again.',
+            ]);
+
+        $this->assertGuest();
+        $this->assertNull($user->fresh()->email_verified_at);
     }
 
     public function test_development_bypass_does_not_bypass_enabled_two_factor_authentication(): void
@@ -129,7 +160,7 @@ class AuthenticationVerificationTest extends TestCase
         ]);
 
         $otp = Mockery::mock(OtpService::class);
-        $otp->shouldReceive('verify')->once()->with(Mockery::type(User::class), 'two_factor', '654321')->andReturnTrue();
+        $otp->shouldReceive('verify')->once()->with(Mockery::type(User::class), 'two_factor', '654321')->andReturn(OtpVerificationResult::Verified);
         $this->app->instance(OtpService::class, $otp);
 
         $this->withSession([

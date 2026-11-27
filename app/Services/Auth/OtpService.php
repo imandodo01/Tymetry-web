@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Enums\Auth\OtpVerificationResult;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -61,19 +62,19 @@ class OtpService
         }
     }
 
-    public function verify(User $user, string $purpose, string $code): bool
+    public function verify(User $user, string $purpose, string $code): OtpVerificationResult
     {
         $this->assertSupportedPurpose($purpose);
 
         $result = Cache::lock($this->lockKey($user, $purpose), self::LOCK_SECONDS)
-            ->get(function () use ($user, $purpose, $code): array {
+            ->get(function () use ($user, $purpose, $code): OtpVerificationResult {
                 $key = $this->key($user, $purpose);
                 $challenge = Cache::get($key);
 
                 if (!$challenge || now()->timestamp >= $challenge['expires_at']) {
                     Cache::forget($key);
 
-                    return ['verified' => false];
+                    return OtpVerificationResult::Invalid;
                 }
 
                 $maxAttempts = (int) config('authentication.otp_max_attempts', 5);
@@ -81,7 +82,7 @@ class OtpService
                 if ($challenge['attempts'] >= $maxAttempts) {
                     Cache::forget($key);
 
-                    return ['verified' => false];
+                    return OtpVerificationResult::Invalid;
                 }
 
                 if (!Hash::check($code, $challenge['hash'])) {
@@ -97,15 +98,17 @@ class OtpService
                         );
                     }
 
-                    return ['verified' => false];
+                    return OtpVerificationResult::Invalid;
                 }
 
                 Cache::forget($key);
 
-                return ['verified' => true];
+                return OtpVerificationResult::Verified;
             });
 
-        return is_array($result) && $result['verified'] === true;
+        return $result instanceof OtpVerificationResult
+            ? $result
+            : OtpVerificationResult::Busy;
     }
 
     public function clear(User $user, string $purpose): void

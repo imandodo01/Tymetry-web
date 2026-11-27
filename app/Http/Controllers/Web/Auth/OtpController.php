@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
+use App\Enums\Auth\OtpVerificationResult;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Auth\OtpService;
@@ -102,8 +103,18 @@ class OtpController extends Controller
             if ($verificationResult !== 'verified') {
                 return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
             }
-        } elseif (!$otp->verify($user, $purpose, $validated['code'])) {
-            return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
+        } else {
+            $verificationResult = $otp->verify($user, $purpose, $validated['code']);
+
+            if ($verificationResult === OtpVerificationResult::Busy) {
+                return back()->withErrors([
+                    'code' => 'A verification request is already being processed. Please wait a moment and try again.',
+                ]);
+            }
+
+            if ($verificationResult !== OtpVerificationResult::Verified) {
+                return back()->withErrors(['code' => 'The code is invalid or expired. Please try again or request a new code.']);
+            }
         }
 
         if ($purpose === 'email_verification') {
