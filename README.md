@@ -14,6 +14,8 @@ The previous **Sprint 06 — Core Stabilization** work is complete and merged in
 - Profile, password, and two-factor preference management.
 - Task creation and editing, with status, priority, due date, and due time.
 - Task filtering, smart ordering, dashboard summaries, and activity history.
+- Board view with persisted status changes and accessible status controls.
+- TYMX v1 Todo export and validated read-only import preview.
 - Bulk completion, archive, and restore operations.
 - Accessible navigation, form labels, validation feedback, and task-table controls.
 
