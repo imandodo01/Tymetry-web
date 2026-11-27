@@ -133,6 +133,23 @@ class TodoTymxImportPreviewTest extends TestCase
         $this->assertSame(0, ActivityLog::query()->count());
     }
 
+    public function test_preview_matches_public_ids_without_case_sensitivity(): void
+    {
+        $user = User::factory()->create();
+        $todo = Todo::factory()->for($user)->create();
+        $snapshot = $this->snapshot($todo);
+
+        $response = $this->upload($user, $this->document([
+            $this->record(strtoupper($todo->public_id), $snapshot, $snapshot),
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('summary.unmatched', 0)
+            ->assertJsonPath('summary.unchanged', 1)
+            ->assertJsonPath('records.0.public_id', strtoupper($todo->public_id))
+            ->assertJsonPath('records.0.action', 'unchanged');
+    }
+
     public function test_preview_rejects_duplicate_public_ids(): void
     {
         $user = User::factory()->create();

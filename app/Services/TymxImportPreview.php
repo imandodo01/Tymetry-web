@@ -59,7 +59,7 @@ class TymxImportPreview
         );
 
         $todos = $user->todos()
-            ->whereIn('public_id', $publicIds)
+            ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(public_id)'), $publicIds)
             ->get()
             ->keyBy(static fn (Todo $todo): string => strtolower($todo->public_id));
 
